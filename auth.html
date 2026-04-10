@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authorize third-party application</title>
+    <title>Authorize | James Auth</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -29,6 +29,17 @@
     <div id="loading-view" class="flex flex-col items-center justify-center space-y-4">
         <div class="spinner"></div>
         <p class="text-slate-500 font-medium text-sm animate-pulse">Authenticating...</p>
+    </div>
+
+    <div id="error-view" class="hidden max-w-md w-full text-center p-8 bg-white rounded-3xl shadow-xl border border-red-100">
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+            <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <h2 class="text-xl font-black text-slate-900 mb-2">Invalid Request</h2>
+        <p id="error-msg" class="text-sm text-slate-500 mb-6">Missing required authentication parameters.</p>
+        <button onclick="window.close()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
+            Close Window
+        </button>
     </div>
 
     <div id="auth-view" class="hidden max-w-md w-full">
@@ -153,10 +164,17 @@
             setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
         }
 
+        function showError(msg) {
+            document.getElementById('loading-view').classList.add('hidden');
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('request-view').classList.add('hidden');
+            document.getElementById('error-view').classList.remove('hidden');
+            document.getElementById('error-msg').innerText = msg;
+        }
+
         function toggleAuthButton() {
             const btn = document.getElementById('auth-btn');
             const checkbox = document.getElementById('cloud-storage-checkbox');
-            
             if (requiresCloudConsent) {
                 btn.disabled = !checkbox.checked;
             } else {
@@ -210,11 +228,16 @@
         }
 
         async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const appName = params.get('app');
+
+            if (!appName) {
+                return showError("This authentication request is invalid because the application identifier was not provided.");
+            }
+
             const { data: { session } } = await supabaseClient.auth.getSession();
             currentUser = session?.user;
 
-            const params = new URLSearchParams(window.location.search);
-            const appName = params.get('app');
             const rawScopes = params.get('scopes') || 'profile';
             const scopesArray = rawScopes.split(',').map(s => s.trim().toLowerCase());
 
@@ -224,14 +247,15 @@
                 (appName === 'ccimprover' && s.name.includes('ClassCharts'))
             );
 
+            if (!targetService && appName !== 'ccimprover') {
+                return showError(`The application "${appName}" is not registered on the James Auth platform.`);
+            }
+
             if (!currentUser) {
                 document.getElementById('loading-view').classList.add('hidden');
                 document.getElementById('auth-view').classList.remove('hidden');
-                if (targetService) {
-                    document.getElementById('login-subtitle').innerText = `Sign in to James Auth to continue to ${targetService.name}`;
-                } else if (appName === 'ccimprover') {
-                    document.getElementById('login-subtitle').innerText = `Sign in to James Auth to continue to ClassCharts Improver`;
-                }
+                const displayName = targetService ? targetService.name : "ClassCharts Improver";
+                document.getElementById('login-subtitle').innerText = `Sign in to James Auth to continue to ${displayName}`;
                 return;
             }
 
@@ -292,9 +316,10 @@
                 document.getElementById('app-name').innerText = targetService.name;
                 document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
                 document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
-            } else {
-                document.getElementById('auth-btn').disabled = true;
-                showToast("Service not found.", true);
+            } else if (appName === 'ccimprover') {
+                document.getElementById('app-name').innerText = "ClassCharts Improver";
+                document.getElementById('app-icon').className = "fas fa-chart-line";
+                document.getElementById('app-icon-container').classList.add("text-blue-600");
             }
         }
 
