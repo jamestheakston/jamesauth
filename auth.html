@@ -95,10 +95,26 @@
                     <span id="app-name" class="font-bold text-slate-800">Application</span> wants to access your James Auth account.
                 </p>
             </div>
-            <div class="bg-slate-50 rounded-2xl p-5 mb-8 border border-slate-100">
+            <div class="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100">
                 <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">This app will be able to:</h4>
                 <ul id="scope-list" class="space-y-3"></ul>
             </div>
+
+            <div id="cloud-storage-container" class="hidden mb-8 px-2">
+                <label class="flex items-start space-x-3 cursor-pointer group">
+                    <div class="relative flex items-center">
+                        <input type="checkbox" id="cloud-storage-checkbox" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white checked:bg-blue-600 checked:border-blue-600 transition-all">
+                        <i class="fas fa-check absolute text-[10px] text-white opacity-0 peer-checked:opacity-100 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <span class="text-sm font-bold text-slate-700 block">Store data in the cloud</span>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Refer to this app's <a id="app-privacy-link" href="privacy.html" target="_blank" class="text-blue-600 hover:underline font-bold">privacy policy</a> for more information.
+                        </p>
+                    </div>
+                </label>
+            </div>
+
             <div class="space-y-3">
                 <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
                     Allow Access
@@ -151,6 +167,7 @@
 
         async function sendSuccessMessage() {
             if (window.opener) {
+                const cloudStorageOptIn = document.getElementById('cloud-storage-checkbox').checked;
                 window.opener.postMessage({
                     type: 'JAMES_AUTH_SUCCESS',
                     user: {
@@ -159,7 +176,8 @@
                         name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
                         avatar: currentUser.user_metadata?.avatar_url || null
                     },
-                    service: targetService.name
+                    service: targetService.name,
+                    cloud_storage: cloudStorageOptIn
                 }, "*");
             }
         }
@@ -183,7 +201,8 @@
 
             const params = new URLSearchParams(window.location.search);
             const appName = params.get('app');
-            const scopes = params.get('scopes') || 'profile';
+            const rawScopes = params.get('scopes') || 'profile';
+            const scopesArray = rawScopes.split(',').map(s => s.trim().toLowerCase());
 
             const { data: services } = await supabaseClient.from('services').select('*');
             targetService = (services || []).find(s => 
@@ -231,10 +250,24 @@
             document.getElementById('loading-view').classList.add('hidden');
             document.getElementById('request-view').classList.remove('hidden');
             
-            const scopeMap = { 'email': 'View your email address', 'profile': 'View your basic profile info', 'sync': 'Sync your preferences' };
+            const scopeMap = { 
+                'email': 'View your email address', 
+                'profile': 'View your basic profile info', 
+                'sync': 'Sync your preferences' 
+            };
+            
             const scopeContainer = document.getElementById('scope-list');
-            scopes.split(',').forEach(s => {
-                const text = scopeMap[s.trim()] || `Access ${s.trim()} data`;
+            
+            if (appName === 'ccimprover') {
+                document.getElementById('app-privacy-link').href = "https://classchartsimprover.pages.dev/privacy";
+            }
+
+            scopesArray.forEach(s => {
+                if (s === 'storedatacloud') {
+                    document.getElementById('cloud-storage-container').classList.remove('hidden');
+                    return;
+                }
+                const text = scopeMap[s] || `Access ${s} data`;
                 scopeContainer.innerHTML += `<li class="flex items-center text-sm text-slate-600 font-medium"><i class="fas fa-check-circle text-green-500 mr-3"></i> ${text}</li>`;
             });
 
