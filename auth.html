@@ -10,9 +10,26 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #2563eb;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
+
+    <div id="loading-view" class="flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <p class="text-slate-500 font-medium text-sm animate-pulse">Authenticating...</p>
+    </div>
 
     <div id="auth-view" class="hidden max-w-md w-full">
         <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
@@ -36,7 +53,6 @@
                     Close Window
                 </button>
             </div>
-
             <div class="mt-10 pt-8 border-t border-slate-100">
                 <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
                     <i class="fas fa-circle-info mr-2 text-blue-500"></i> What is James Auth?
@@ -117,13 +133,7 @@
             window.location.reload();
         }
 
-        async function handleAuthorization() {
-            if (!targetService) return;
-            const { error } = await supabaseClient.from('user_connections').insert({
-                user_id: currentUser.id,
-                service_id: targetService.id
-            });
-            if (error && error.code !== '23505') return showToast(error.message, true);
+        async function sendSuccessMessage() {
             if (window.opener) {
                 window.opener.postMessage({
                     type: 'JAMES_AUTH_SUCCESS',
@@ -136,10 +146,19 @@
                     service: targetService.name
                 }, "*");
             }
+        }
+
+        async function handleAuthorization() {
+            if (!targetService) return;
+            const { error } = await supabaseClient.from('user_connections').insert({
+                user_id: currentUser.id,
+                service_id: targetService.id
+            });
+            if (error && error.code !== '23505') return showToast(error.message, true);
+            
+            await sendSuccessMessage();
             showToast(`Connected to ${targetService.name}!`);
-            setTimeout(() => {
-                window.close();
-            }, 1000);
+            setTimeout(() => window.close(), 1000);
         }
 
         async function init() {
@@ -157,6 +176,7 @@
             );
 
             if (!currentUser) {
+                document.getElementById('loading-view').classList.add('hidden');
                 document.getElementById('auth-view').classList.remove('hidden');
                 if (targetService) {
                     document.getElementById('login-subtitle').innerText = `Sign in to James Auth to continue to ${targetService.name}`;
@@ -166,7 +186,24 @@
                 return;
             }
 
+            if (targetService) {
+                const { data: connections } = await supabaseClient
+                    .from('user_connections')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('service_id', targetService.id)
+                    .single();
+
+                if (connections) {
+                    await sendSuccessMessage();
+                    setTimeout(() => window.close(), 500);
+                    return;
+                }
+            }
+
+            document.getElementById('loading-view').classList.add('hidden');
             document.getElementById('request-view').classList.remove('hidden');
+            
             const scopeMap = { 'email': 'View your email address', 'profile': 'View your basic profile info', 'sync': 'Sync your preferences' };
             const scopeContainer = document.getElementById('scope-list');
             scopes.split(',').forEach(s => {
