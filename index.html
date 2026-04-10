@@ -171,13 +171,10 @@
                             <i id="modal-icon" class="fas"></i>
                         </div>
                         <div>
-                            <h2 id="modal-title" class="text-3xl font-black text-slate-900 flex items-center">
-                                Title
-                                <img src="badge.png" class="w-5 h-5 ml-2" alt="Verified" onerror="this.style.display='none'">
-                            </h2>
+                            <h2 id="modal-title" class="text-3xl font-black text-slate-900">Title</h2>
                             <p id="modal-dev" class="text-blue-600 font-bold text-sm flex items-center">
                                 James Theakston
-                                <i class="fas fa-certificate text-[10px] ml-1.5"></i>
+                                <img src="badge.png" class="w-3.5 h-3.5 ml-1.5" alt="Verified" onerror="this.style.display='none'">
                             </p>
                         </div>
                     </div>
@@ -425,7 +422,7 @@
             const status = document.getElementById('modal-status');
             const accent = document.getElementById('modal-accent');
             const ccNotice = document.getElementById('modal-cc-notice');
-            title.innerHTML = `${s.name} <img src="badge.png" class="w-5 h-5 ml-2" alt="Verified" onerror="this.style.display='none'">`;
+            title.innerText = s.name;
             desc.innerText = s.description;
             icon.className = `fas ${s.icon_class}`;
             iconContainer.className = `w-20 h-20 rounded-3xl flex items-center justify-center text-3xl text-${s.accent_color || 'blue-600'} bg-slate-50`;
