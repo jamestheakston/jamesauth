@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,8 +88,10 @@
                         <i class="fas fa-check absolute text-[10px] text-white opacity-0 peer-checked:opacity-100 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-opacity"></i>
                     </div>
                     <div class="flex-grow">
-                        <span class="text-sm font-bold text-slate-700 block">Store data in the cloud</span>
-                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed italic">I acknowledge that this application will store data associated with my account.</p>
+                        <span class="text-sm font-bold text-slate-700 block">Cloud Synchronization</span>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed italic">
+                            I agree to the <a id="privacy-link" href="#" target="_blank" class="text-blue-600 underline font-bold">Privacy Policy</a> and acknowledge that my data will be stored on <span id="app-name-inline" class="font-bold">the application's</span> platform, not James Auth.
+                        </p>
                     </div>
                 </label>
             </div>
@@ -112,6 +115,7 @@
         let currentUser = null;
         let targetService = null;
         let requiresCloudConsent = false;
+        let activeScopes = [];
 
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
@@ -150,21 +154,26 @@
         }
 
         async function finalizeAuth() {
+            const hasEmail = activeScopes.includes('email');
+            const hasProfile = activeScopes.includes('profile');
             const cloudStorageOptIn = document.getElementById('cloud-storage-checkbox').checked;
-            const userData = {
-                id: currentUser.id,
-                email: currentUser.email,
-                name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0],
-                avatar: currentUser.user_metadata?.avatar_url || null,
-                cloud_storage: cloudStorageOptIn
-            };
+
+            const userData = { id: currentUser.id };
+            if (hasEmail) userData.email = currentUser.email;
+            if (hasProfile) {
+                userData.name = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+                userData.avatar = currentUser.user_metadata?.avatar_url || null;
+            }
+            userData.cloud_storage = cloudStorageOptIn;
 
             if (targetService.redirect_url) {
                 const url = new URL(targetService.redirect_url);
                 url.searchParams.set('user_id', userData.id);
-                url.searchParams.set('email', userData.email);
-                url.searchParams.set('name', userData.name);
-                if (userData.avatar) url.searchParams.set('avatar', userData.avatar);
+                if (hasEmail) url.searchParams.set('email', userData.email);
+                if (hasProfile) {
+                    url.searchParams.set('name', userData.name);
+                    if (userData.avatar) url.searchParams.set('avatar', userData.avatar);
+                }
                 url.searchParams.set('cloud_storage', userData.cloud_storage);
                 window.location.href = url.toString();
             } else {
@@ -191,7 +200,10 @@
         async function init() {
             const params = new URLSearchParams(window.location.search);
             const appShortName = params.get('app');
+            const rawScopes = params.get('scopes');
+
             if (!appShortName) return showError("Application identifier was not provided.");
+            if (!rawScopes) return showError("No scopes were provided. Authentication requires at least one scope.");
 
             const { data: { session } } = await supabaseClient.auth.getSession();
             currentUser = session?.user;
@@ -207,9 +219,8 @@
                 'storedatacloud': 'Store application data in the cloud' 
             };
 
-            const rawScopes = params.get('scopes') || 'profile';
-            const scopesArray = rawScopes.split(',').map(s => s.trim().toLowerCase());
-            const invalidScopes = scopesArray.filter(s => !scopeMap[s]);
+            activeScopes = rawScopes.split(',').map(s => s.trim().toLowerCase());
+            const invalidScopes = activeScopes.filter(s => !scopeMap[s]);
             if (invalidScopes.length > 0) return showError(`Invalid scopes requested: ${invalidScopes.join(', ')}`);
 
             if (!currentUser) {
@@ -238,11 +249,16 @@
             document.getElementById('loading-view').classList.add('hidden');
             document.getElementById('request-view').classList.remove('hidden');
             document.getElementById('app-name').innerText = targetService.name;
+            document.getElementById('app-name-inline').innerText = targetService.name;
             document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
             document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
+            
+            if (targetService.privacy_url) {
+                document.getElementById('privacy-link').href = targetService.privacy_url;
+            }
 
             const scopeContainer = document.getElementById('scope-list');
-            scopesArray.forEach(s => {
+            activeScopes.forEach(s => {
                 if (s === 'storedatacloud') {
                     requiresCloudConsent = true;
                     document.getElementById('cloud-storage-container').classList.remove('hidden');
