@@ -11,6 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .service-card:hover { transform: translateY(-4px); }
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen">
@@ -59,61 +60,88 @@
                             </button>
                         </div>
                     </div>
-
-                    <div class="mt-10 pt-8 border-t border-slate-100">
-                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
-                            <i class="fas fa-circle-info mr-2"></i> What is James Auth?
-                        </h4>
-                        <p class="text-[13px] text-slate-600 leading-relaxed">
-                            James Auth is one platform you can use to connect to all my apps. From <b>ClassCharts Improver</b> to <b>LiteStack</b>, manage your entire workspace with a single, secure identity.
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
 
         <div id="dashboard-view" class="hidden">
-            <header class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-4xl font-extrabold text-slate-900">Dashboard</h1>
-                    <p class="text-slate-500 mt-1">Access and manage your connected services.</p>
-                </div>
-                <div class="bg-blue-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center space-x-3">
-                    <i class="fas fa-shield-halved text-xl opacity-80"></i>
-                    <div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider opacity-80">Account Status</div>
-                        <div class="text-sm font-bold">Securely Connected</div>
-                    </div>
-                </div>
+            <header class="mb-10">
+                <h1 class="text-4xl font-extrabold text-slate-900">Dashboard</h1>
+                <p class="text-slate-500 mt-1">Manage your active and available services.</p>
             </header>
 
-            <div id="services-grid" class="grid md:grid-cols-2 gap-6 mb-12">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Connected Services</h3>
+            <div id="connected-grid" class="grid md:grid-cols-2 gap-6 mb-12">
             </div>
 
-            <section class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-                <div class="flex items-center justify-between mb-8">
-                    <h3 class="text-xl font-bold text-slate-900 flex items-center">
-                        <i class="fas fa-rocket mr-3 text-blue-500"></i> Upcoming Apps
-                    </h3>
-                </div>
-                <div class="grid sm:grid-cols-3 gap-4">
-                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 border-dashed">
-                        <i class="fas fa-graduation-cap text-slate-400 text-xl mb-3"></i>
-                        <div class="font-bold text-slate-700 text-sm">Study Track</div>
-                        <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tighter">In Development</div>
-                    </div>
-                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 border-dashed">
-                        <i class="fas fa-flask text-slate-400 text-xl mb-3"></i>
-                        <div class="font-bold text-slate-700 text-sm">Beta Labs</div>
-                        <div class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-tighter">Private Beta</div>
-                    </div>
-                    <div class="flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6">
-                        <span class="text-slate-300 font-bold text-xs uppercase tracking-widest">More Soon</span>
-                    </div>
-                </div>
-            </section>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Discovery Store</h3>
+            <div id="available-grid" class="grid md:grid-cols-2 gap-6 mb-12">
+            </div>
         </div>
     </main>
+
+    <div id="service-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+        <div class="bg-white rounded-[2.5rem] w-full max-w-xl relative z-10 overflow-hidden shadow-2xl transition-all transform">
+            <div id="modal-accent" class="h-3 w-full"></div>
+            <div class="p-8">
+                <div class="flex justify-between items-start mb-8">
+                    <div class="flex items-center space-x-5">
+                        <div id="modal-icon-container" class="w-20 h-20 rounded-3xl flex items-center justify-center text-3xl shadow-inner border border-slate-100">
+                            <i id="modal-icon" class="fas"></i>
+                        </div>
+                        <div>
+                            <h2 id="modal-title" class="text-3xl font-black text-slate-900 flex items-center">
+                                Title
+                                <i class="fas fa-circle-check text-blue-500 text-sm ml-2" title="Verified Service"></i>
+                            </h2>
+                            <p id="modal-dev" class="text-blue-600 font-bold text-sm flex items-center">
+                                James Theakston
+                                <i class="fas fa-certificate text-[10px] ml-1.5"></i>
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">About</h4>
+                        <p id="modal-description" class="text-slate-600 leading-relaxed"></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Status</div>
+                            <div id="modal-status" class="text-sm font-bold text-slate-700">Not Connected</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Developer</div>
+                            <div class="text-sm font-bold text-slate-700">James Theakston</div>
+                        </div>
+                    </div>
+
+                    <div id="modal-cc-notice" class="hidden bg-blue-50 border border-blue-100 p-5 rounded-2xl">
+                        <div class="flex items-start space-x-3">
+                            <i class="fab fa-chrome text-blue-600 text-xl mt-0.5"></i>
+                            <div>
+                                <h5 class="text-sm font-bold text-blue-900">Extension Required</h5>
+                                <p class="text-xs text-blue-700 mt-1 leading-relaxed">
+                                    To use ClassCharts Improver, please install the Chrome Extension and log in using your James Auth credentials.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="modal-action-btn" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95">
+                        Launch Service
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl transition-all duration-500 z-[100] flex items-center space-x-3">
         <div id="toast-icon" class="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -125,7 +153,9 @@
         const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let isSignUpMode = false;
+        let currentUser = null;
+        let allServices = [];
+        let connectedIds = [];
 
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
@@ -137,21 +167,15 @@
         }
 
         function toggleAuthMode() {
-            isSignUpMode = !isSignUpMode;
-            const title = document.getElementById('auth-title');
-            const subtitle = document.getElementById('auth-subtitle');
             const btn = document.getElementById('main-auth-btn');
             const toggle = document.getElementById('toggle-auth');
-
-            if (isSignUpMode) {
-                title.innerText = "Create Account";
-                subtitle.innerText = "Join the James Auth ecosystem";
+            const isSignUp = btn.innerText === "Sign In";
+            
+            if (isSignUp) {
                 btn.innerText = "Create Account";
                 btn.onclick = signUp;
                 toggle.innerText = "Already have an account? Sign In";
             } else {
-                title.innerText = "Welcome Back";
-                subtitle.innerText = "Sign in to your James Auth account";
                 btn.innerText = "Sign In";
                 btn.onclick = signIn;
                 toggle.innerText = "Don't have an account? Create one";
@@ -161,21 +185,16 @@
         async function signUp() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            if (!email || !password) return showToast("Please fill in all fields", true);
-            
-            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            const { error } = await supabaseClient.auth.signUp({ email, password });
             if (error) return showToast(error.message, true);
-            showToast("Success! Check your email to confirm.");
+            showToast("Success! Check your email.");
         }
 
         async function signIn() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            if (!email || !password) return showToast("Please fill in all fields", true);
-
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) return showToast(error.message, true);
-            showToast("Authenticated successfully");
             loadDashboard();
         }
 
@@ -187,51 +206,109 @@
         async function loadDashboard() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
+            currentUser = user;
 
             document.getElementById('auth-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
             document.getElementById('user-nav').classList.remove('hidden');
             document.getElementById('nav-email').innerText = user.email;
 
-            fetchServices();
+            await fetchServicesAndConnections();
         }
 
-        async function fetchServices() {
-            const { data: services, error } = await supabaseClient.from('services').select('*');
-            const grid = document.getElementById('services-grid');
+        async function fetchServicesAndConnections() {
+            const { data: services } = await supabaseClient.from('services').select('*');
+            const { data: connections } = await supabaseClient.from('user_connections').select('service_id').eq('user_id', currentUser.id);
             
-            if (error || !services || services.length === 0) {
-              grid.innerHTML = `
-                <div class="col-span-full bg-white p-12 rounded-3xl border border-slate-200 text-center">
-                    <div class="text-slate-300 text-5xl mb-4"><i class="fas fa-folder-open"></i></div>
-                    <p class="text-slate-500 font-medium">No services found in your database.</p>
+            allServices = (services || []).filter(s => s.name !== 'LiteStack');
+            connectedIds = (connections || []).map(c => c.service_id);
+
+            renderGrids();
+        }
+
+        function renderGrids() {
+            const connectedGrid = document.getElementById('connected-grid');
+            const availableGrid = document.getElementById('available-grid');
+
+            const connected = allServices.filter(s => connectedIds.includes(s.id));
+            const available = allServices.filter(s => !connectedIds.includes(s.id));
+
+            connectedGrid.innerHTML = connected.length === 0 ? `<p class="col-span-full text-slate-400 italic">No apps connected.</p>` : connected.map(s => renderServiceCard(s, true)).join('');
+            availableGrid.innerHTML = available.map(s => renderServiceCard(s, false)).join('');
+        }
+
+        function renderServiceCard(s, isConnected) {
+            return `
+                <div class="service-card bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex items-center space-x-5 transition-all">
+                    <div class="w-14 h-14 bg-slate-50 text-${s.accent_color || 'blue-600'} rounded-2xl flex items-center justify-center text-2xl border border-slate-100 shadow-inner">
+                        <i class="fas ${s.icon_class}"></i>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <h3 class="text-lg font-bold text-slate-900 truncate">${s.name}</h3>
+                        <p class="text-slate-500 text-xs truncate">${s.description}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openStorePage('${s.id}')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap">
+                            View Details
+                        </button>
+                        ${isConnected ? `
+                            <button onclick="unlinkService('${s.id}')" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-slate-50 rounded-xl hover:bg-red-50">
+                                <i class="fas fa-link-slash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
-              `;
-              return;
+            `;
+        }
+
+        function openStorePage(id) {
+            const s = allServices.find(item => item.id === id);
+            const isConnected = connectedIds.includes(id);
+            
+            const modal = document.getElementById('service-modal');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-description');
+            const icon = document.getElementById('modal-icon');
+            const iconContainer = document.getElementById('modal-icon-container');
+            const status = document.getElementById('modal-status');
+            const accent = document.getElementById('modal-accent');
+            const actionBtn = document.getElementById('modal-action-btn');
+            const ccNotice = document.getElementById('modal-cc-notice');
+
+            title.innerText = s.name;
+            desc.innerText = s.description;
+            icon.className = `fas ${s.icon_class}`;
+            iconContainer.className = `w-20 h-20 rounded-3xl flex items-center justify-center text-3xl text-${s.accent_color || 'blue-600'} bg-slate-50`;
+            status.innerText = isConnected ? "Connected" : "Not Connected";
+            status.className = isConnected ? "text-sm font-bold text-green-600" : "text-sm font-bold text-slate-700";
+            accent.className = `h-3 w-full bg-${s.accent_color || 'blue-600'}`;
+            
+            ccNotice.classList.toggle('hidden', s.name !== "ClassCharts Improver");
+            actionBtn.classList.toggle('hidden', !isConnected);
+
+            if (isConnected) {
+                actionBtn.innerText = "Launch Service";
+                actionBtn.onclick = () => launchService(s);
             }
 
-            grid.innerHTML = services.map(s => `
-                <div class="service-card bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:border-blue-100">
-                    <div>
-                        <div class="w-16 h-16 bg-slate-50 text-${s.accent_color} rounded-2xl flex items-center justify-center text-3xl mb-6 border border-slate-100 shadow-inner">
-                            <i class="fas ${s.icon_class}"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 mb-2">${s.name}</h3>
-                        <p class="text-slate-500 leading-relaxed text-sm mb-6">${s.description}</p>
-                    </div>
-                    <div class="flex items-center justify-between pt-6 border-t border-slate-50">
-                        <a href="${s.launch_url}" target="_blank" class="bg-blue-50 text-blue-700 px-5 py-2 rounded-xl text-sm font-bold hover:bg-blue-600 hover:text-white transition-all">Launch Console</a>
-                        <button class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-slate-50 rounded-xl hover:bg-red-50">
-                            <i class="fas fa-link-slash"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('service-modal').classList.add('hidden'); }
+
+        async function unlinkService(id) {
+            await supabaseClient.from('user_connections').delete().eq('user_id', currentUser.id).eq('service_id', id);
+            connectedIds = connectedIds.filter(cid => cid !== id);
+            renderGrids();
+        }
+
+        function launchService(s) {
+            if (s.launch_url) window.open(s.launch_url, '_blank');
         }
 
         window.onload = async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) loadDashboard();
+            if (session) await loadDashboard();
         };
     </script>
 </body>
