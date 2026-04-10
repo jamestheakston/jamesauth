@@ -14,7 +14,41 @@
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
 
-    <div id="auth-card" class="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden">
+    <div id="auth-view" class="hidden max-w-md w-full">
+        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
+            <div class="text-center mb-8">
+                <h2 id="login-title" class="text-3xl font-extrabold text-slate-900 mb-2">Welcome Back</h2>
+                <p id="login-subtitle" class="text-sm text-slate-500">Sign in to James Auth to continue</p>
+            </div>
+            <div class="space-y-5">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
+                    <input type="email" id="email" placeholder="name@example.com" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                </div>
+                <button onclick="signIn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98]">
+                    Sign In
+                </button>
+                <button onclick="window.close()" class="w-full text-slate-400 font-bold py-2 text-xs hover:text-slate-600 transition-colors">
+                    Close Window
+                </button>
+            </div>
+
+            <div class="mt-10 pt-8 border-t border-slate-100">
+                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
+                    <i class="fas fa-circle-info mr-2 text-blue-500"></i> What is James Auth?
+                </h4>
+                <p class="text-[13px] text-slate-600 leading-relaxed">
+                    James Auth is a secure, unified identity platform. It allows you to use one single account to access all my applications, including <b>ClassCharts Improver</b> and <b>LiteStack</b>, while keeping your data synced and protected.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="request-view" class="hidden bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden">
         <div class="h-2 w-full bg-blue-600"></div>
         <div class="p-8">
             <div class="flex justify-center mb-8">
@@ -28,29 +62,24 @@
                     </div>
                 </div>
             </div>
-
             <div class="text-center mb-8">
                 <h1 class="text-2xl font-black text-slate-900 mb-2">Authorize Access</h1>
                 <p class="text-slate-500 text-sm">
                     <span id="app-name" class="font-bold text-slate-800">Application</span> wants to access your James Auth account.
                 </p>
             </div>
-
             <div class="bg-slate-50 rounded-2xl p-5 mb-8 border border-slate-100">
                 <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">This app will be able to:</h4>
-                <ul id="scope-list" class="space-y-3">
-                </ul>
+                <ul id="scope-list" class="space-y-3"></ul>
             </div>
-
             <div class="space-y-3">
                 <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
                     Allow Access
                 </button>
-                <button onclick="window.location.href='oauth_platform.html'" class="w-full text-slate-400 font-bold py-3 text-sm hover:text-slate-600 transition-colors">
+                <button onclick="window.close()" class="w-full text-slate-400 font-bold py-3 text-sm hover:text-slate-600 transition-colors">
                     Cancel Request
                 </button>
             </div>
-
             <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center space-x-2">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified by</span>
                 <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">James Auth</span>
@@ -80,25 +109,21 @@
             setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
         }
 
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) return showToast(error.message, true);
+            window.location.reload();
+        }
+
         async function handleAuthorization() {
-            if (!currentUser) {
-                showToast("Please sign in first", true);
-                const params = new URLSearchParams(window.location.search);
-                const appName = params.get('app');
-                const scopes = params.get('scopes');
-                window.location.href = `oauth_platform.html?redirect_app=${appName}&scopes=${scopes}`;
-                return;
-            }
-
             if (!targetService) return;
-
             const { error } = await supabaseClient.from('user_connections').insert({
                 user_id: currentUser.id,
                 service_id: targetService.id
             });
-
             if (error && error.code !== '23505') return showToast(error.message, true);
-
             if (window.opener) {
                 window.opener.postMessage({
                     type: 'JAMES_AUTH_SUCCESS',
@@ -111,15 +136,9 @@
                     service: targetService.name
                 }, "*");
             }
-
             showToast(`Connected to ${targetService.name}!`);
-            
             setTimeout(() => {
-                if (window.opener) {
-                    window.close();
-                } else {
-                    window.location.href = 'oauth_platform.html';
-                }
+                window.close();
             }, 1000);
         }
 
@@ -131,37 +150,37 @@
             const appName = params.get('app');
             const scopes = params.get('scopes') || 'profile';
 
-            const scopeMap = {
-                'email': 'View your email address',
-                'profile': 'View your basic profile info',
-                'sync': 'Sync your preferences'
-            };
+            const { data: services } = await supabaseClient.from('services').select('*');
+            targetService = (services || []).find(s => 
+                s.name.toLowerCase().includes(appName?.toLowerCase() || '') || 
+                (appName === 'ccimprover' && s.name.includes('ClassCharts'))
+            );
 
+            if (!currentUser) {
+                document.getElementById('auth-view').classList.remove('hidden');
+                if (targetService) {
+                    document.getElementById('login-subtitle').innerText = `Sign in to James Auth to continue to ${targetService.name}`;
+                } else if (appName === 'ccimprover') {
+                    document.getElementById('login-subtitle').innerText = `Sign in to James Auth to continue to ClassCharts Improver`;
+                }
+                return;
+            }
+
+            document.getElementById('request-view').classList.remove('hidden');
+            const scopeMap = { 'email': 'View your email address', 'profile': 'View your basic profile info', 'sync': 'Sync your preferences' };
             const scopeContainer = document.getElementById('scope-list');
             scopes.split(',').forEach(s => {
                 const text = scopeMap[s.trim()] || `Access ${s.trim()} data`;
-                scopeContainer.innerHTML += `
-                    <li class="flex items-center text-sm text-slate-600 font-medium">
-                        <i class="fas fa-check-circle text-green-500 mr-3"></i> ${text}
-                    </li>
-                `;
+                scopeContainer.innerHTML += `<li class="flex items-center text-sm text-slate-600 font-medium"><i class="fas fa-check-circle text-green-500 mr-3"></i> ${text}</li>`;
             });
 
-            if (appName) {
-                const { data: services } = await supabaseClient.from('services').select('*');
-                targetService = (services || []).find(s => 
-                    s.name.toLowerCase().includes(appName.toLowerCase()) || 
-                    (appName === 'ccimprover' && s.name.includes('ClassCharts'))
-                );
-
-                if (targetService) {
-                    document.getElementById('app-name').innerText = targetService.name;
-                    document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
-                    document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
-                } else {
-                    document.getElementById('auth-btn').disabled = true;
-                    showToast("Service not found.", true);
-                }
+            if (targetService) {
+                document.getElementById('app-name').innerText = targetService.name;
+                document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
+                document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
+            } else {
+                document.getElementById('auth-btn').disabled = true;
+                showToast("Service not found.", true);
             }
         }
 
