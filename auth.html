@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorize | James Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
+
+    <div id="auth-card" class="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden">
+        <div class="h-2 w-full bg-blue-600"></div>
+        <div class="p-8">
+            <div class="flex justify-center mb-8">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-blue-600 text-white rounded-xl flex items-center justify-center text-xl shadow-lg">
+                        <i class="fas fa-id-card-clip"></i>
+                    </div>
+                    <i class="fas fa-arrow-right text-slate-300"></i>
+                    <div id="app-icon-container" class="w-12 h-12 bg-slate-100 text-slate-400 rounded-xl flex items-center justify-center text-xl border border-slate-200">
+                        <i id="app-icon" class="fas fa-question"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-black text-slate-900 mb-2">Authorize Access</h1>
+                <p class="text-slate-500 text-sm">
+                    <span id="app-name" class="font-bold text-slate-800">Application</span> wants to access your James Auth account.
+                </p>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-5 mb-8 border border-slate-100">
+                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">This app will be able to:</h4>
+                <ul id="scope-list" class="space-y-3">
+                </ul>
+            </div>
+
+            <div class="space-y-3">
+                <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                    Allow Access
+                </button>
+                <button onclick="window.location.href='oauth_platform.html'" class="w-full text-slate-400 font-bold py-3 text-sm hover:text-slate-600 transition-colors">
+                    Cancel Request
+                </button>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center space-x-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified by</span>
+                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">James Auth</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl transition-all duration-500 z-[100] flex items-center space-x-3">
+        <div id="toast-icon" class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        <span id="toast-msg" class="text-sm font-medium"></span>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let targetService = null;
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-msg').innerText = msg;
+            icon.className = isError ? 'w-2 h-2 bg-red-500 rounded-full' : 'w-2 h-2 bg-blue-500 rounded-full';
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+
+        async function handleAuthorization() {
+            if (!currentUser) {
+                showToast("Please sign in first", true);
+                const params = new URLSearchParams(window.location.search);
+                const appName = params.get('app');
+                const scopes = params.get('scopes');
+                window.location.href = `oauth_platform.html?redirect_app=${appName}&scopes=${scopes}`;
+                return;
+            }
+
+            if (!targetService) return;
+
+            const { error } = await supabaseClient.from('user_connections').insert({
+                user_id: currentUser.id,
+                service_id: targetService.id
+            });
+
+            if (error && error.code !== '23505') return showToast(error.message, true);
+
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'JAMES_AUTH_SUCCESS',
+                    user: {
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
+                        avatar: currentUser.user_metadata?.avatar_url || null
+                    },
+                    service: targetService.name
+                }, "*");
+            }
+
+            showToast(`Connected to ${targetService.name}!`);
+            
+            setTimeout(() => {
+                if (window.opener) {
+                    window.close();
+                } else {
+                    window.location.href = 'oauth_platform.html';
+                }
+            }, 1000);
+        }
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user;
+
+            const params = new URLSearchParams(window.location.search);
+            const appName = params.get('app');
+            const scopes = params.get('scopes') || 'profile';
+
+            const scopeMap = {
+                'email': 'View your email address',
+                'profile': 'View your basic profile info',
+                'sync': 'Sync your preferences'
+            };
+
+            const scopeContainer = document.getElementById('scope-list');
+            scopes.split(',').forEach(s => {
+                const text = scopeMap[s.trim()] || `Access ${s.trim()} data`;
+                scopeContainer.innerHTML += `
+                    <li class="flex items-center text-sm text-slate-600 font-medium">
+                        <i class="fas fa-check-circle text-green-500 mr-3"></i> ${text}
+                    </li>
+                `;
+            });
+
+            if (appName) {
+                const { data: services } = await supabaseClient.from('services').select('*');
+                targetService = (services || []).find(s => 
+                    s.name.toLowerCase().includes(appName.toLowerCase()) || 
+                    (appName === 'ccimprover' && s.name.includes('ClassCharts'))
+                );
+
+                if (targetService) {
+                    document.getElementById('app-name').innerText = targetService.name;
+                    document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
+                    document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
+                } else {
+                    document.getElementById('auth-btn').disabled = true;
+                    showToast("Service not found.", true);
+                }
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
