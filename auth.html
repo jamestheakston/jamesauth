@@ -100,11 +100,11 @@
                 <ul id="scope-list" class="space-y-3"></ul>
             </div>
 
-            <div id="cloud-storage-container" class="hidden mb-8 px-2">
+            <div id="cloud-storage-container" class="hidden mb-8 px-2 p-4 bg-slate-50 rounded-2xl border border-blue-100">
                 <label class="flex items-start space-x-3 cursor-pointer group">
-                    <div class="relative flex items-center">
-                        <input type="checkbox" id="cloud-storage-checkbox" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white checked:bg-blue-600 checked:border-blue-600 transition-all">
-                        <i class="fas fa-check absolute text-[10px] text-white opacity-0 peer-checked:opacity-100 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <div class="relative flex items-center mt-0.5">
+                        <input type="checkbox" id="cloud-storage-checkbox" onchange="toggleAuthButton()" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white checked:bg-blue-600 checked:border-blue-600 transition-all focus:ring-2 focus:ring-blue-500/20">
+                        <i class="fas fa-check absolute text-[10px] text-white opacity-0 peer-checked:opacity-100 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-opacity"></i>
                     </div>
                     <div class="flex-grow">
                         <span class="text-sm font-bold text-slate-700 block">Store data in the cloud</span>
@@ -116,7 +116,7 @@
             </div>
 
             <div class="space-y-3">
-                <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed">
                     Allow Access
                 </button>
                 <button onclick="window.close()" class="w-full text-slate-400 font-bold py-3 text-sm hover:text-slate-600 transition-colors">
@@ -142,6 +142,7 @@
 
         let currentUser = null;
         let targetService = null;
+        let requiresCloudConsent = false;
 
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
@@ -150,6 +151,17 @@
             icon.className = isError ? 'w-2 h-2 bg-red-500 rounded-full' : 'w-2 h-2 bg-blue-500 rounded-full';
             toast.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+
+        function toggleAuthButton() {
+            const btn = document.getElementById('auth-btn');
+            const checkbox = document.getElementById('cloud-storage-checkbox');
+            
+            if (requiresCloudConsent) {
+                btn.disabled = !checkbox.checked;
+            } else {
+                btn.disabled = false;
+            }
         }
 
         async function signIn() {
@@ -184,6 +196,8 @@
 
         async function handleAuthorization() {
             if (!targetService) return;
+            if (requiresCloudConsent && !document.getElementById('cloud-storage-checkbox').checked) return;
+
             const { error } = await supabaseClient.from('user_connections').insert({
                 user_id: currentUser.id,
                 service_id: targetService.id
@@ -264,12 +278,15 @@
 
             scopesArray.forEach(s => {
                 if (s === 'storedatacloud') {
+                    requiresCloudConsent = true;
                     document.getElementById('cloud-storage-container').classList.remove('hidden');
                     return;
                 }
                 const text = scopeMap[s] || `Access ${s} data`;
                 scopeContainer.innerHTML += `<li class="flex items-center text-sm text-slate-600 font-medium"><i class="fas fa-check-circle text-green-500 mr-3"></i> ${text}</li>`;
             });
+
+            toggleAuthButton();
 
             if (targetService) {
                 document.getElementById('app-name').innerText = targetService.name;
