@@ -238,8 +238,21 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
             currentUser = session?.user;
 
+            const scopeMap = { 
+                'email': 'View your email address', 
+                'profile': 'View your basic profile info', 
+                'sync': 'Sync your preferences',
+                'storedatacloud': 'Store application data in the cloud'
+            };
+            const supportedScopes = Object.keys(scopeMap);
+
             const rawScopes = params.get('scopes') || 'profile';
             const scopesArray = rawScopes.split(',').map(s => s.trim().toLowerCase());
+
+            const invalidScopes = scopesArray.filter(s => !supportedScopes.includes(s));
+            if (invalidScopes.length > 0) {
+                return showError(`Request rejected. The following requested scopes are not supported: ${invalidScopes.join(', ')}`);
+            }
 
             const { data: services } = await supabaseClient.from('services').select('*');
             targetService = (services || []).find(s => 
@@ -287,12 +300,6 @@
 
             document.getElementById('loading-view').classList.add('hidden');
             document.getElementById('request-view').classList.remove('hidden');
-            
-            const scopeMap = { 
-                'email': 'View your email address', 
-                'profile': 'View your basic profile info', 
-                'sync': 'Sync your preferences' 
-            };
             
             const scopeContainer = document.getElementById('scope-list');
             
