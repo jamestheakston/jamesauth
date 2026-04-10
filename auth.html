@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,18 +11,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .spinner {
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border-left-color: #2563eb;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .spinner { border: 3px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #2563eb; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
@@ -36,10 +27,8 @@
             <i class="fas fa-triangle-exclamation"></i>
         </div>
         <h2 class="text-xl font-black text-slate-900 mb-2">Invalid Request</h2>
-        <p id="error-msg" class="text-sm text-slate-500 mb-6">Missing required authentication parameters.</p>
-        <button onclick="window.close()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
-            Close Window
-        </button>
+        <p id="error-msg" class="text-sm text-slate-500 mb-6"></p>
+        <button onclick="window.close()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">Close Window</button>
     </div>
 
     <div id="auth-view" class="hidden max-w-md w-full">
@@ -57,20 +46,7 @@
                     <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Password</label>
                     <input type="password" id="password" placeholder="••••••••" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
                 </div>
-                <button onclick="signIn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98]">
-                    Sign In
-                </button>
-                <button onclick="window.close()" class="w-full text-slate-400 font-bold py-2 text-xs hover:text-slate-600 transition-colors">
-                    Close Window
-                </button>
-            </div>
-            <div class="mt-10 pt-8 border-t border-slate-100">
-                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
-                    <i class="fas fa-circle-info mr-2 text-blue-500"></i> What is James Auth?
-                </h4>
-                <p class="text-[13px] text-slate-600 leading-relaxed">
-                    James Auth is a secure, unified identity platform. It allows you to use one single account to access all my applications, including <b>ClassCharts Improver</b> and <b>LiteStack</b>, while keeping your data synced and protected.
-                </p>
+                <button onclick="signIn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98]">Sign In</button>
             </div>
         </div>
     </div>
@@ -90,27 +66,21 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg shadow-md">
-                        <i class="fas fa-id-card-clip"></i>
-                    </div>
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg shadow-md"><i class="fas fa-id-card-clip"></i></div>
                     <i class="fas fa-arrow-right text-slate-300 text-xs"></i>
                     <div id="app-icon-container" class="w-10 h-10 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center text-lg border border-slate-200">
                         <i id="app-icon" class="fas fa-question"></i>
                     </div>
                 </div>
             </div>
-
             <div class="text-center mb-8">
                 <h1 class="text-2xl font-black text-slate-900 mb-2">Authorize Access</h1>
-                <p class="text-slate-500 text-sm">
-                    <span id="app-name" class="font-bold text-slate-800">Application</span> wants to access your James Auth account.
-                </p>
+                <p class="text-slate-500 text-sm"><span id="app-name" class="font-bold text-slate-800">Application</span> wants to access your account.</p>
             </div>
             <div class="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100">
                 <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">This app will be able to:</h4>
                 <ul id="scope-list" class="space-y-3"></ul>
             </div>
-
             <div id="cloud-storage-container" class="hidden mb-8 px-2 p-4 bg-slate-50 rounded-2xl border border-blue-100">
                 <label class="flex items-start space-x-3 cursor-pointer group">
                     <div class="relative flex items-center mt-0.5">
@@ -119,24 +89,13 @@
                     </div>
                     <div class="flex-grow">
                         <span class="text-sm font-bold text-slate-700 block">Store data in the cloud</span>
-                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                            Refer to this app's <a id="app-privacy-link" href="privacy.html" target="_blank" class="text-blue-600 hover:underline font-bold">privacy policy</a> for more information.
-                        </p>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed italic">I acknowledge that this application will store data associated with my account.</p>
                     </div>
                 </label>
             </div>
-
             <div class="space-y-3">
-                <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed">
-                    Allow Access
-                </button>
-                <button onclick="window.close()" class="w-full text-slate-400 font-bold py-3 text-sm hover:text-slate-600 transition-colors">
-                    Cancel Request
-                </button>
-            </div>
-            <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center space-x-2">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified by</span>
-                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">James Auth</span>
+                <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed">Allow Access</button>
+                <button onclick="window.close()" class="w-full text-slate-400 font-bold py-3 text-sm hover:text-slate-600 transition-colors">Cancel Request</button>
             </div>
         </div>
     </div>
@@ -175,11 +134,7 @@
         function toggleAuthButton() {
             const btn = document.getElementById('auth-btn');
             const checkbox = document.getElementById('cloud-storage-checkbox');
-            if (requiresCloudConsent) {
-                btn.disabled = !checkbox.checked;
-            } else {
-                btn.disabled = false;
-            }
+            btn.disabled = requiresCloudConsent ? !checkbox.checked : false;
         }
 
         async function signIn() {
@@ -200,12 +155,7 @@
                 const cloudStorageOptIn = document.getElementById('cloud-storage-checkbox').checked;
                 window.opener.postMessage({
                     type: 'JAMES_AUTH_SUCCESS',
-                    user: {
-                        id: currentUser.id,
-                        email: currentUser.email,
-                        name: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
-                        avatar: currentUser.user_metadata?.avatar_url || null
-                    },
+                    user: { id: currentUser.id, email: currentUser.email, name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0], avatar: currentUser.user_metadata?.avatar_url || null },
                     service: targetService.name,
                     cloud_storage: cloudStorageOptIn
                 }, "*");
@@ -215,13 +165,8 @@
         async function handleAuthorization() {
             if (!targetService) return;
             if (requiresCloudConsent && !document.getElementById('cloud-storage-checkbox').checked) return;
-
-            const { error } = await supabaseClient.from('user_connections').insert({
-                user_id: currentUser.id,
-                service_id: targetService.id
-            });
+            const { error } = await supabaseClient.from('user_connections').insert({ user_id: currentUser.id, service_id: targetService.id });
             if (error && error.code !== '23505') return showToast(error.message, true);
-            
             await sendSuccessMessage();
             showToast(`Connected to ${targetService.name}!`);
             setTimeout(() => window.close(), 1000);
@@ -229,52 +174,31 @@
 
         async function init() {
             const params = new URLSearchParams(window.location.search);
-            const appName = params.get('app');
-
-            if (!appName) {
-                return showError("This authentication request is invalid because the application identifier was not provided.");
-            }
+            const appShortName = params.get('app');
+            if (!appShortName) return showError("Application identifier was not provided.");
 
             const { data: { session } } = await supabaseClient.auth.getSession();
             currentUser = session?.user;
 
-            const scopeMap = { 
-                'email': 'View your email address', 
-                'profile': 'View your basic profile info', 
-                'sync': 'Sync your preferences',
-                'storedatacloud': 'Store application data in the cloud'
-            };
-            const supportedScopes = Object.keys(scopeMap);
+            const { data: service } = await supabaseClient.from('services').select('*').eq('short_name', appShortName).maybeSingle();
+            if (!service) return showError(`The application "${appShortName}" is not registered on this platform.`);
+            targetService = service;
 
+            const scopeMap = { 'email': 'View your email address', 'profile': 'View your basic profile info', 'sync': 'Sync your preferences', 'storedatacloud': 'Store application data in the cloud' };
             const rawScopes = params.get('scopes') || 'profile';
             const scopesArray = rawScopes.split(',').map(s => s.trim().toLowerCase());
-
-            const invalidScopes = scopesArray.filter(s => !supportedScopes.includes(s));
-            if (invalidScopes.length > 0) {
-                return showError(`Request rejected. The following requested scopes are not supported: ${invalidScopes.join(', ')}`);
-            }
-
-            const { data: services } = await supabaseClient.from('services').select('*');
-            targetService = (services || []).find(s => 
-                s.name.toLowerCase().includes(appName?.toLowerCase() || '') || 
-                (appName === 'ccimprover' && s.name.includes('ClassCharts'))
-            );
-
-            if (!targetService && appName !== 'ccimprover') {
-                return showError(`The application "${appName}" is not registered on the James Auth platform.`);
-            }
+            const invalidScopes = scopesArray.filter(s => !scopeMap[s]);
+            if (invalidScopes.length > 0) return showError(`Invalid scopes requested: ${invalidScopes.join(', ')}`);
 
             if (!currentUser) {
                 document.getElementById('loading-view').classList.add('hidden');
                 document.getElementById('auth-view').classList.remove('hidden');
-                const displayName = targetService ? targetService.name : "ClassCharts Improver";
-                document.getElementById('login-subtitle').innerText = `Sign in to James Auth to continue to ${displayName}`;
+                document.getElementById('login-subtitle').innerText = `Sign in to continue to ${targetService.name}`;
                 return;
             }
 
-            const userName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+            const userName = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
             const userAvatar = currentUser.user_metadata?.avatar_url;
-            
             document.getElementById('user-display-name').innerText = userName;
             if (userAvatar) {
                 const img = document.getElementById('user-avatar');
@@ -283,54 +207,34 @@
                 document.getElementById('user-icon').classList.add('hidden');
             }
 
-            if (targetService) {
-                const { data: connections } = await supabaseClient
-                    .from('user_connections')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .eq('service_id', targetService.id)
-                    .maybeSingle();
-
-                if (connections) {
-                    await sendSuccessMessage();
-                    setTimeout(() => window.close(), 500);
-                    return;
-                }
+            const { data: connected } = await supabaseClient.from('user_connections').select('*').eq('user_id', currentUser.id).eq('service_id', targetService.id).maybeSingle();
+            if (connected) {
+                await sendSuccessMessage();
+                setTimeout(() => window.close(), 500);
+                return;
             }
 
             document.getElementById('loading-view').classList.add('hidden');
             document.getElementById('request-view').classList.remove('hidden');
-            
-            const scopeContainer = document.getElementById('scope-list');
-            
-            if (appName === 'ccimprover') {
-                document.getElementById('app-privacy-link').href = "https://classchartsimprover.pages.dev/privacy";
-            }
+            document.getElementById('app-name').innerText = targetService.name;
+            document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
+            document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
 
+            const scopeContainer = document.getElementById('scope-list');
             scopesArray.forEach(s => {
                 if (s === 'storedatacloud') {
                     requiresCloudConsent = true;
                     document.getElementById('cloud-storage-container').classList.remove('hidden');
-                    return;
+                } else {
+                    scopeContainer.innerHTML += `<li class="flex items-center text-sm text-slate-600 font-medium"><i class="fas fa-check-circle text-green-500 mr-3"></i> ${scopeMap[s]}</li>`;
                 }
-                const text = scopeMap[s] || `Access ${s} data`;
-                scopeContainer.innerHTML += `<li class="flex items-center text-sm text-slate-600 font-medium"><i class="fas fa-check-circle text-green-500 mr-3"></i> ${text}</li>`;
             });
-
             toggleAuthButton();
-
-            if (targetService) {
-                document.getElementById('app-name').innerText = targetService.name;
-                document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
-                document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
-            } else if (appName === 'ccimprover') {
-                document.getElementById('app-name').innerText = "ClassCharts Improver";
-                document.getElementById('app-icon').className = "fas fa-chart-line";
-                document.getElementById('app-icon-container').classList.add("text-blue-600");
-            }
         }
 
         window.onload = init;
     </script>
 </body>
 </html>
+
+```
