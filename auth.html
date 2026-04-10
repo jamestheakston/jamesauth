@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -149,15 +150,34 @@
             window.location.reload();
         }
 
-        async function sendSuccessMessage() {
-            if (window.opener) {
-                const cloudStorageOptIn = document.getElementById('cloud-storage-checkbox').checked;
-                window.opener.postMessage({
-                    type: 'JAMES_AUTH_SUCCESS',
-                    user: { id: currentUser.id, email: currentUser.email, name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0], avatar: currentUser.user_metadata?.avatar_url || null },
-                    service: targetService.name,
-                    cloud_storage: cloudStorageOptIn
-                }, "*");
+        async function finalizeAuth() {
+            const cloudStorageOptIn = document.getElementById('cloud-storage-checkbox').checked;
+            const userData = {
+                id: currentUser.id,
+                email: currentUser.email,
+                name: currentUser.user_metadata?.display_name || currentUser.email.split('@')[0],
+                avatar: currentUser.user_metadata?.avatar_url || null,
+                cloud_storage: cloudStorageOptIn
+            };
+
+            if (targetService.redirect_url) {
+                const url = new URL(targetService.redirect_url);
+                url.searchParams.set('user_id', userData.id);
+                url.searchParams.set('email', userData.email);
+                url.searchParams.set('name', userData.name);
+                if (userData.avatar) url.searchParams.set('avatar', userData.avatar);
+                url.searchParams.set('cloud_storage', userData.cloud_storage);
+                window.location.href = url.toString();
+            } else {
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'JAMES_AUTH_SUCCESS',
+                        user: userData,
+                        service: targetService.name
+                    }, "*");
+                }
+                showToast(`Connected to ${targetService.name}!`);
+                setTimeout(() => window.close(), 1000);
             }
         }
 
@@ -166,9 +186,7 @@
             if (requiresCloudConsent && !document.getElementById('cloud-storage-checkbox').checked) return;
             const { error } = await supabaseClient.from('user_connections').insert({ user_id: currentUser.id, service_id: targetService.id });
             if (error && error.code !== '23505') return showToast(error.message, true);
-            await sendSuccessMessage();
-            showToast(`Connected to ${targetService.name}!`);
-            setTimeout(() => window.close(), 1000);
+            await finalizeAuth();
         }
 
         async function init() {
@@ -183,7 +201,13 @@
             if (!service) return showError(`The application "${appShortName}" is not registered on this platform.`);
             targetService = service;
 
-            const scopeMap = { 'email': 'View your email address', 'profile': 'View your basic profile info', 'sync': 'Sync your preferences', 'storedatacloud': 'Store application data in the cloud' };
+            const scopeMap = { 
+                'email': 'View your email address', 
+                'profile': 'View your basic profile info', 
+                'sync': 'Sync your preferences', 
+                'storedatacloud': 'Store application data in the cloud' 
+            };
+
             const rawScopes = params.get('scopes') || 'profile';
             const scopesArray = rawScopes.split(',').map(s => s.trim().toLowerCase());
             const invalidScopes = scopesArray.filter(s => !scopeMap[s]);
@@ -208,8 +232,7 @@
 
             const { data: connected } = await supabaseClient.from('user_connections').select('*').eq('user_id', currentUser.id).eq('service_id', targetService.id).maybeSingle();
             if (connected) {
-                await sendSuccessMessage();
-                setTimeout(() => window.close(), 500);
+                await finalizeAuth();
                 return;
             }
 
@@ -235,3 +258,5 @@
     </script>
 </body>
 </html>
+
+```
