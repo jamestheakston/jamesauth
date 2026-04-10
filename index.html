@@ -8,15 +8,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .service-card:hover { transform: translateY(-4px); }
         .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen flex flex-col">
 
-    <nav class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+    <nav class="glass border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
         <div class="flex items-center space-x-2">
             <div class="bg-blue-600 text-white p-2 rounded-lg">
                 <i class="fas fa-id-card-clip text-xl"></i>
@@ -24,12 +25,23 @@
             <span class="text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
         </div>
         <div id="user-nav" class="hidden flex items-center space-x-4">
-            <span id="nav-email" class="text-slate-600 text-sm font-semibold"></span>
+            <div class="text-right hidden sm:block">
+                <p id="nav-display-name" class="text-sm font-bold text-slate-900 leading-none"></p>
+                <p id="nav-email" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider"></p>
+            </div>
+            <button onclick="toggleSettings()" class="group relative">
+                <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-200 ring-2 ring-slate-100 group-hover:ring-blue-100 transition-all">
+                    <img id="nav-avatar" class="hidden w-full h-full object-cover">
+                    <div id="nav-avatar-icon" class="w-full h-full flex items-center justify-center text-slate-400">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </button>
             <button onclick="signOut()" class="text-sm font-bold text-slate-400 hover:text-red-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg">Sign Out</button>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto p-6 lg:py-12">
+    <main class="max-w-5xl mx-auto p-6 lg:py-12 flex-grow w-full">
         
         <div id="auth-view" class="max-w-md mx-auto mt-8">
             <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
@@ -71,20 +83,79 @@
                     </div>
                 </div>
             </div>
+            <div class="text-center mt-8">
+                <a href="privacy.html" class="text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors flex items-center justify-center">
+                    <i class="fas fa-shield-halved mr-2"></i> Privacy Policy
+                </a>
+            </div>
         </div>
 
         <div id="dashboard-view" class="hidden">
-            <header class="mb-10">
-                <h1 class="text-4xl font-extrabold text-slate-900">Dashboard</h1>
-                <p class="text-slate-500 mt-1">Manage your active and available services.</p>
+            <header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
+                    <p class="text-slate-500 mt-1 font-medium">Manage your active and available services.</p>
+                </div>
+                <button onclick="toggleSettings()" class="bg-white border border-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-slate-50 transition-all flex items-center shadow-sm">
+                    <i class="fas fa-user-gear mr-2 text-blue-600"></i> Edit Profile
+                </button>
             </header>
 
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Connected Services</h3>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center">
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Connected Services
+            </h3>
             <div id="connected-grid" class="grid md:grid-cols-2 gap-6 mb-12">
             </div>
 
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6">Discovery Store</h3>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center">
+                <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> Discovery Store
+            </h3>
             <div id="available-grid" class="grid md:grid-cols-2 gap-6 mb-12">
+            </div>
+        </div>
+
+        <div id="settings-view" class="hidden max-w-2xl mx-auto">
+            <button onclick="toggleSettings()" class="mb-8 text-sm font-bold text-blue-600 flex items-center hover:translate-x-[-4px] transition-transform">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </button>
+
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
+                <div class="p-8 border-b border-slate-100 bg-slate-50/50">
+                    <h2 class="text-2xl font-black text-slate-900">Profile Settings</h2>
+                    <p class="text-slate-500 text-sm font-medium">Update your identity across the James Auth network.</p>
+                </div>
+
+                <div class="p-8 space-y-8">
+                    <div class="flex items-center space-x-6">
+                        <div class="w-24 h-24 rounded-3xl bg-slate-100 border-2 border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img id="settings-avatar-preview" class="hidden w-full h-full object-cover">
+                            <i id="settings-avatar-icon" class="fas fa-user text-3xl text-slate-300"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900">Avatar Preview</h4>
+                            <p class="text-xs text-slate-500">How you appear to other services.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Display Name</label>
+                            <input type="text" id="input-name" placeholder="Enter your name" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Avatar URL</label>
+                            <input type="text" id="input-avatar" oninput="previewAvatar(this.value)" placeholder="https://example.com/photo.jpg" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium">
+                        </div>
+                    </div>
+
+                    <button id="save-settings-btn" onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98] flex items-center justify-center">
+                        <i class="fas fa-check-circle mr-2"></i> Save Profile
+                    </button>
+                    
+                    <div class="pt-4 text-center">
+                        <a href="privacy.html" class="text-xs font-bold text-slate-400 hover:text-blue-600">Privacy Policy</a>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -102,7 +173,7 @@
                         <div>
                             <h2 id="modal-title" class="text-3xl font-black text-slate-900 flex items-center">
                                 Title
-                                <i class="fas fa-circle-check text-blue-500 text-sm ml-2" title="Verified Service"></i>
+                                <img src="badge.png" class="w-5 h-5 ml-2" alt="Verified" onerror="this.style.display='none'">
                             </h2>
                             <p id="modal-dev" class="text-blue-600 font-bold text-sm flex items-center">
                                 James Theakston
@@ -143,10 +214,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <button id="modal-action-btn" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95">
-                        Launch Service
-                    </button>
                 </div>
             </div>
         </div>
@@ -165,6 +232,7 @@
         let currentUser = null;
         let allServices = [];
         let connectedIds = [];
+        let showingSettings = false;
 
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
@@ -179,7 +247,6 @@
             const btn = document.getElementById('main-auth-btn');
             const toggle = document.getElementById('toggle-auth');
             const isSignUp = btn.innerText === "Sign In";
-            
             if (isSignUp) {
                 btn.innerText = "Create Account";
                 btn.onclick = signUp;
@@ -212,6 +279,75 @@
             window.location.reload();
         }
 
+        function toggleSettings() {
+            showingSettings = !showingSettings;
+            document.getElementById('dashboard-view').classList.toggle('hidden', showingSettings);
+            document.getElementById('settings-view').classList.toggle('hidden', !showingSettings);
+            if (showingSettings) {
+                const meta = currentUser.user_metadata || {};
+                document.getElementById('input-name').value = meta.display_name || '';
+                document.getElementById('input-avatar').value = meta.avatar_url || '';
+                previewAvatar(meta.avatar_url);
+            }
+        }
+
+        function previewAvatar(url) {
+            const preview = document.getElementById('settings-avatar-preview');
+            const icon = document.getElementById('settings-avatar-icon');
+            if (url && url.length > 5) {
+                preview.src = url;
+                preview.classList.remove('hidden');
+                icon.classList.add('hidden');
+            } else {
+                preview.classList.add('hidden');
+                icon.classList.remove('hidden');
+            }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('save-settings-btn');
+            const name = document.getElementById('input-name').value;
+            const avatar = document.getElementById('input-avatar').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+
+            const { data, error } = await supabaseClient.auth.updateUser({
+                data: { display_name: name, avatar_url: avatar }
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Save Profile';
+
+            if (error) return showToast(error.message, true);
+
+            currentUser = data.user;
+            updateNavUI();
+            showToast("Profile updated!");
+            setTimeout(toggleSettings, 800);
+        }
+
+        function updateNavUI() {
+            const meta = currentUser.user_metadata || {};
+            const displayName = meta.display_name || currentUser.email.split('@')[0];
+            const avatarUrl = meta.avatar_url;
+
+            document.getElementById('nav-display-name').innerText = displayName;
+            document.getElementById('nav-email').innerText = currentUser.email;
+
+            const navAvatar = document.getElementById('nav-avatar');
+            const navIcon = document.getElementById('nav-avatar-icon');
+
+            if (avatarUrl) {
+                navAvatar.src = avatarUrl;
+                navAvatar.classList.remove('hidden');
+                navIcon.classList.add('hidden');
+            } else {
+                navAvatar.classList.add('hidden');
+                navIcon.classList.remove('hidden');
+            }
+        }
+
         async function loadDashboard() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
@@ -220,29 +356,37 @@
             document.getElementById('auth-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
             document.getElementById('user-nav').classList.remove('hidden');
-            document.getElementById('nav-email').innerText = user.email;
-
+            
+            updateNavUI();
             await fetchServicesAndConnections();
         }
 
         async function fetchServicesAndConnections() {
             const { data: services } = await supabaseClient.from('services').select('*');
             const { data: connections } = await supabaseClient.from('user_connections').select('service_id').eq('user_id', currentUser.id);
-            
             allServices = (services || []).filter(s => s.name !== 'LiteStack');
-            connectedIds = (connections || []).map(c => c.service_id);
+            
+            allServices = allServices.map(s => {
+                if(s.name === "ClassCharts Improver") {
+                    return {
+                        ...s,
+                        description: "Upgrade your school portal experience with automated homework organization, visual enhancements, and powerful tools designed for students who want to stay ahead.",
+                        launch_url: "https://classchartsimprover.pages.dev/"
+                    };
+                }
+                return s;
+            });
 
+            connectedIds = (connections || []).map(c => c.service_id);
             renderGrids();
         }
 
         function renderGrids() {
             const connectedGrid = document.getElementById('connected-grid');
             const availableGrid = document.getElementById('available-grid');
-
             const connected = allServices.filter(s => connectedIds.includes(s.id));
             const available = allServices.filter(s => !connectedIds.includes(s.id));
-
-            connectedGrid.innerHTML = connected.length === 0 ? `<p class="col-span-full text-slate-400 italic">No apps connected.</p>` : connected.map(s => renderServiceCard(s, true)).join('');
+            connectedGrid.innerHTML = connected.length === 0 ? `<p class="col-span-full text-slate-400 italic py-4">No apps connected.</p>` : connected.map(s => renderServiceCard(s, true)).join('');
             availableGrid.innerHTML = available.map(s => renderServiceCard(s, false)).join('');
         }
 
@@ -258,7 +402,7 @@
                     </div>
                     <div class="flex items-center space-x-2">
                         <button onclick="openStorePage('${s.id}')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap">
-                            View Details
+                            Details
                         </button>
                         ${isConnected ? `
                             <button onclick="unlinkService('${s.id}')" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-slate-50 rounded-xl hover:bg-red-50">
@@ -273,7 +417,6 @@
         function openStorePage(id) {
             const s = allServices.find(item => item.id === id);
             const isConnected = connectedIds.includes(id);
-            
             const modal = document.getElementById('service-modal');
             const title = document.getElementById('modal-title');
             const desc = document.getElementById('modal-description');
@@ -281,25 +424,15 @@
             const iconContainer = document.getElementById('modal-icon-container');
             const status = document.getElementById('modal-status');
             const accent = document.getElementById('modal-accent');
-            const actionBtn = document.getElementById('modal-action-btn');
             const ccNotice = document.getElementById('modal-cc-notice');
-
-            title.innerText = s.name;
+            title.innerHTML = `${s.name} <img src="badge.png" class="w-5 h-5 ml-2" alt="Verified" onerror="this.style.display='none'">`;
             desc.innerText = s.description;
             icon.className = `fas ${s.icon_class}`;
             iconContainer.className = `w-20 h-20 rounded-3xl flex items-center justify-center text-3xl text-${s.accent_color || 'blue-600'} bg-slate-50`;
             status.innerText = isConnected ? "Connected" : "Not Connected";
             status.className = isConnected ? "text-sm font-bold text-green-600" : "text-sm font-bold text-slate-700";
             accent.className = `h-3 w-full bg-${s.accent_color || 'blue-600'}`;
-            
             ccNotice.classList.toggle('hidden', s.name !== "ClassCharts Improver");
-            actionBtn.classList.toggle('hidden', !isConnected);
-
-            if (isConnected) {
-                actionBtn.innerText = "Launch Service";
-                actionBtn.onclick = () => launchService(s);
-            }
-
             modal.classList.remove('hidden');
         }
 
@@ -309,10 +442,6 @@
             await supabaseClient.from('user_connections').delete().eq('user_id', currentUser.id).eq('service_id', id);
             connectedIds = connectedIds.filter(cid => cid !== id);
             renderGrids();
-        }
-
-        function launchService(s) {
-            if (s.launch_url) window.open(s.launch_url, '_blank');
         }
 
         window.onload = async () => {
