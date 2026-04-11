@@ -24,16 +24,8 @@
             </div>
             <span class="text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
         </div>
-        <div id="user-nav" class="hidden flex items-center space-x-4">
-            <a href="docs.html" class="text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 mr-2" fill="currentColor"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M192 64C156.7 64 128 92.7 128 128L128 512C128 547.3 156.7 576 192 576L448 576C483.3 576 512 547.3 512 512L512 234.5C512 217.5 505.3 201.2 493.3 189.2L386.7 82.7C374.7 70.7 358.5 64 341.5 64L192 64zM453.5 240L360 240C346.7 240 336 229.3 336 216L336 122.5L453.5 240z"/></svg>
-                Docs
-            </a>
-            <div class="text-right hidden sm:block">
-                <p id="nav-display-name" class="text-sm font-bold text-slate-900 leading-none"></p>
-                <p id="nav-email" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider"></p>
-            </div>
-            <button onclick="toggleSettings()" class="group relative">
+        <div id="user-nav" class="hidden relative">
+            <button onclick="toggleProfileDropdown()" class="group relative">
                 <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-200 ring-2 ring-slate-100 group-hover:ring-blue-100 transition-all">
                     <img id="nav-avatar" class="hidden w-full h-full object-cover">
                     <div id="nav-avatar-icon" class="w-full h-full flex items-center justify-center text-slate-400">
@@ -41,7 +33,44 @@
                     </div>
                 </div>
             </button>
-            <button onclick="signOut()" class="text-sm font-bold text-slate-400 hover:text-red-600 transition-colors bg-slate-100 px-3 py-1.5 rounded-lg">Sign Out</button>
+            
+            <!-- Profile Dropdown -->
+            <div id="profile-dropdown" class="hidden absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50">
+                <div class="p-4 border-b border-slate-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-200 flex-shrink-0">
+                            <img id="dropdown-avatar" class="hidden w-full h-full object-cover">
+                            <div id="dropdown-avatar-icon" class="w-full h-full flex items-center justify-center text-slate-400">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <p id="dropdown-display-name" class="text-sm font-bold text-slate-900 truncate"></p>
+                            <p id="dropdown-email" class="text-xs text-slate-500 truncate"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="py-2">
+                    <button onclick="toggleSettings(); closeProfileDropdown();" class="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                        <i class="fas fa-user-gear w-5 text-blue-600 mr-3"></i>
+                        Account Settings
+                    </button>
+                    <a href="docs.html" class="block px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-5 h-5 text-blue-600 mr-3" fill="currentColor"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M192 64C156.7 64 128 92.7 128 128L128 512C128 547.3 156.7 576 192 576L448 576C483.3 576 512 547.3 512 512L512 234.5C512 217.5 505.3 201.2 493.3 189.2L386.7 82.7C374.7 70.7 358.5 64 341.5 64L192 64zM453.5 240L360 240C346.7 240 336 229.3 336 216L336 122.5L453.5 240z"/></svg>
+                        Documentation
+                    </a>
+                    <button onclick="showAbout(); closeProfileDropdown();" class="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                        <i class="fas fa-info-circle w-5 text-blue-600 mr-3"></i>
+                        About
+                    </button>
+                    <div class="border-t border-slate-100 my-2"></div>
+                    <button onclick="signOut()" class="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center">
+                        <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                        Sign Out
+                    </button>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -319,8 +348,8 @@
             const meta = currentUser.user_metadata || {};
             const displayName = meta.display_name || currentUser.email.split('@')[0];
             const avatarUrl = meta.avatar_url;
-            document.getElementById('nav-display-name').innerText = displayName;
-            document.getElementById('nav-email').innerText = currentUser.email;
+            
+            // Update main navigation avatar
             const navAvatar = document.getElementById('nav-avatar');
             const navIcon = document.getElementById('nav-avatar-icon');
             if (avatarUrl) {
@@ -331,7 +360,45 @@
                 navAvatar.classList.add('hidden');
                 navIcon.classList.remove('hidden');
             }
+            
+            // Update dropdown profile info
+            document.getElementById('dropdown-display-name').innerText = displayName;
+            document.getElementById('dropdown-email').innerText = currentUser.email;
+            
+            const dropdownAvatar = document.getElementById('dropdown-avatar');
+            const dropdownIcon = document.getElementById('dropdown-avatar-icon');
+            if (avatarUrl) {
+                dropdownAvatar.src = avatarUrl;
+                dropdownAvatar.classList.remove('hidden');
+                dropdownIcon.classList.add('hidden');
+            } else {
+                dropdownAvatar.classList.add('hidden');
+                dropdownIcon.classList.remove('hidden');
+            }
         }
+
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profile-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        function closeProfileDropdown() {
+            document.getElementById('profile-dropdown').classList.add('hidden');
+        }
+
+        function showAbout() {
+            alert('James Auth\n\nA centralized authentication platform for seamless access to multiple applications.\n\nDeveloped by James Theakston\n\nVersion 1.0.0');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userNav = document.getElementById('user-nav');
+            const dropdown = document.getElementById('profile-dropdown');
+            
+            if (!userNav.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
 
         async function loadDashboard() {
             if (!supabaseClient) return;
