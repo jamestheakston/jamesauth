@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Application | James Auth Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <nav class="glass border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="bg-purple-600 text-white p-2 rounded-lg">
+                <i class="fas fa-flask text-xl"></i>
+            </div>
+            <span class="text-xl font-bold text-slate-800 tracking-tight">Test Application</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="index.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Back to James Auth
+            </a>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-6 lg:py-12 flex-grow w-full">
+        
+        <div class="mb-12 text-center">
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Test Application</h1>
+            <p class="text-slate-500 text-lg font-medium">James Auth Integration Test Service</p>
+        </div>
+
+        <div class="space-y-8">
+            
+            <!-- Authentication Status -->
+            <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-purple-100 text-purple-600 p-3 rounded-xl">
+                        <i class="fas fa-user-check text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Authentication Status</h2>
+                </div>
+                <div id="auth-status" class="space-y-4">
+                    <div class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-4xl text-slate-300 mb-4"></i>
+                        <p class="text-slate-500">Checking authentication...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Information -->
+            <div id="user-info" class="hidden bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-green-100 text-green-600 p-3 rounded-xl">
+                        <i class="fas fa-user text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">User Information</h2>
+                </div>
+                <div id="user-details" class="space-y-4"></div>
+            </div>
+
+            <!-- Test Actions -->
+            <div id="test-actions" class="hidden bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-blue-100 text-blue-600 p-3 rounded-xl">
+                        <i class="fas fa-cogs text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Test Actions</h2>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <button onclick="testAPI()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center">
+                        <i class="fas fa-api mr-2"></i> Test API Call
+                    </button>
+                    <button onclick="testStorage()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center">
+                        <i class="fas fa-database mr-2"></i> Test Cloud Storage
+                    </button>
+                    <button onclick="testSync()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center">
+                        <i class="fas fa-sync mr-2"></i> Test Sync
+                    </button>
+                    <button onclick="clearData()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center">
+                        <i class="fas fa-trash mr-2"></i> Clear Test Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Debug Information -->
+            <div id="debug-info" class="hidden bg-slate-900 text-slate-100 rounded-3xl p-8 border border-slate-700">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-slate-700 text-slate-300 p-3 rounded-xl">
+                        <i class="fas fa-bug text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-100">Debug Information</h2>
+                </div>
+                <pre id="debug-output" class="text-sm font-mono whitespace-pre-wrap"></pre>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl transition-all duration-500 z-[100] flex items-center space-x-3">
+        <div id="toast-icon" class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        <span id="toast-msg" class="text-sm font-medium"></span>
+    </div>
+
+    <script>
+        let userData = null;
+        let testResults = [];
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-msg').innerText = msg;
+            icon.className = isError ? 'w-2 h-2 bg-red-500 rounded-full' : 'w-2 h-2 bg-blue-500 rounded-full';
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+
+        function updateDebugInfo(message) {
+            const debugOutput = document.getElementById('debug-output');
+            const timestamp = new Date().toLocaleTimeString();
+            debugOutput.textContent += `[${timestamp}] ${message}\n`;
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+        }
+
+        function checkAuthFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('user_id')) {
+                userData = {
+                    id: params.get('user_id'),
+                    email: params.get('email') || null,
+                    name: params.get('name') || null,
+                    avatar: params.get('avatar') || null,
+                    cloud_storage: params.get('cloud_storage') === 'true'
+                };
+                updateDebugInfo('User data received from URL parameters');
+                return true;
+            }
+            return false;
+        }
+
+        function listenForAuth() {
+            return new Promise((resolve) => {
+                const timeout = setTimeout(() => {
+                    window.removeEventListener('message', messageHandler);
+                    resolve(false);
+                }, 5000);
+
+                const messageHandler = (event) => {
+                    if (event.data.type === 'JAMES_AUTH_SUCCESS') {
+                        clearTimeout(timeout);
+                        window.removeEventListener('message', messageHandler);
+                        userData = event.data.user;
+                        updateDebugInfo('User data received via postMessage');
+                        resolve(true);
+                    }
+                };
+
+                window.addEventListener('message', messageHandler);
+                
+                // Open auth window
+                const authWindow = window.open('auth.html?app=testapp&scopes=email,profile,sync,storedatacloud', 'auth', 'width=500,height=600,scrollbars=yes,resizable=yes');
+                
+                // Check if window was closed
+                const checkClosed = setInterval(() => {
+                    if (authWindow.closed) {
+                        clearInterval(checkClosed);
+                        clearTimeout(timeout);
+                        window.removeEventListener('message', messageHandler);
+                        resolve(false);
+                    }
+                }, 1000);
+            });
+        }
+
+        function displayUserInfo() {
+            const authStatus = document.getElementById('auth-status');
+            const userInfo = document.getElementById('user-info');
+            const testActions = document.getElementById('test-actions');
+            const debugInfo = document.getElementById('debug-info');
+            
+            authStatus.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Authenticated</h3>
+                        <p class="text-slate-500 text-sm">Successfully connected to James Auth</p>
+                    </div>
+                </div>
+            `;
+
+            const userDetails = document.getElementById('user-details');
+            userDetails.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-xl">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">User ID</h4>
+                        <p class="text-slate-900 font-mono text-sm">${userData.id}</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">Email</h4>
+                        <p class="text-slate-900 text-sm">${userData.email || 'Not provided'}</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">Name</h4>
+                        <p class="text-slate-900 text-sm">${userData.name || 'Not provided'}</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">Cloud Storage</h4>
+                        <p class="text-slate-900 text-sm">${userData.cloud_storage ? 'Enabled' : 'Disabled'}</p>
+                    </div>
+                </div>
+                ${userData.avatar ? `
+                <div class="mt-4">
+                    <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">Avatar</h4>
+                    <img src="${userData.avatar}" alt="User Avatar" class="w-20 h-20 rounded-full border-2 border-slate-200">
+                </div>
+                ` : ''}
+            `;
+
+            userInfo.classList.remove('hidden');
+            testActions.classList.remove('hidden');
+            debugInfo.classList.remove('hidden');
+        }
+
+        async function testAPI() {
+            updateDebugInfo('Testing API call...');
+            showToast('Testing API call...');
+            
+            // Simulate API call
+            setTimeout(() => {
+                const result = { status: 'success', data: { message: 'API call successful' } };
+                testResults.push({ type: 'api', result });
+                updateDebugInfo(`API Test Result: ${JSON.stringify(result)}`);
+                showToast('API test successful!');
+            }, 1000);
+        }
+
+        async function testStorage() {
+            if (!userData.cloud_storage) {
+                showToast('Cloud storage not enabled', true);
+                return;
+            }
+            
+            updateDebugInfo('Testing cloud storage...');
+            showToast('Testing cloud storage...');
+            
+            // Simulate storage operation
+            setTimeout(() => {
+                const testData = { user_id: userData.id, timestamp: Date.now(), test: 'data' };
+                const result = { status: 'success', data: testData };
+                testResults.push({ type: 'storage', result });
+                updateDebugInfo(`Storage Test Result: ${JSON.stringify(result)}`);
+                showToast('Cloud storage test successful!');
+            }, 1000);
+        }
+
+        async function testSync() {
+            updateDebugInfo('Testing sync...');
+            showToast('Testing sync...');
+            
+            // Simulate sync operation
+            setTimeout(() => {
+                const result = { status: 'success', synced: true, timestamp: Date.now() };
+                testResults.push({ type: 'sync', result });
+                updateDebugInfo(`Sync Test Result: ${JSON.stringify(result)}`);
+                showToast('Sync test successful!');
+            }, 1000);
+        }
+
+        function clearData() {
+            testResults = [];
+            updateDebugInfo('Test data cleared');
+            showToast('Test data cleared');
+        }
+
+        async function init() {
+            updateDebugInfo('Initializing Test Application...');
+            
+            // Check if we have auth data from URL
+            if (checkAuthFromURL()) {
+                displayUserInfo();
+                updateDebugInfo('Authentication successful via URL parameters');
+                return;
+            }
+            
+            // Try to authenticate via postMessage
+            updateDebugInfo('No URL parameters found, attempting authentication...');
+            const authSuccess = await listenForAuth();
+            
+            if (authSuccess && userData) {
+                displayUserInfo();
+                updateDebugInfo('Authentication successful via postMessage');
+            } else {
+                const authStatus = document.getElementById('auth-status');
+                authStatus.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+                            <i class="fas fa-times"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Authentication Failed</h3>
+                        <p class="text-slate-500 text-sm mb-4">Could not authenticate with James Auth</p>
+                        <button onclick="window.location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl transition-all">
+                            <i class="fas fa-redo mr-2"></i> Try Again
+                        </button>
+                    </div>
+                `;
+                updateDebugInfo('Authentication failed');
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
