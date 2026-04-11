@@ -267,12 +267,7 @@
                     </button>
                 </div>
                 
-                <div class="mt-6 pt-6 border-t border-slate-100">
-                    <p class="text-xs text-slate-500 text-center">
-                        This documentation contains sensitive integration details and requires authentication to access.
-                    </p>
-                </div>
-            </div>
+                            </div>
         </div>
     </div>
 
@@ -314,6 +309,15 @@
         }
 
         function authenticateWithJamesAuth() {
+            const button = event.target.closest('button');
+            const originalContent = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Authenticating...';
+            button.disabled = true;
+            button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            button.classList.add('bg-blue-500');
+            
             // Open the authentication window
             const authUrl = 'https://jamesauth.pages.dev/auth.html?app=authdocs&scopes=profile';
             const width = 500;
@@ -336,8 +340,14 @@
                     clearInterval(checkClosed);
                     window.removeEventListener('message', handleAuthMessage);
                     authWindow = null;
+                    
+                    // Reset button if window was closed by user
+                    resetButton(button, originalContent);
                 }
             }, 1000);
+            
+            // Store original content and button reference
+            button.dataset.originalContent = originalContent;
         }
 
         function handleAuthMessage(event) {
@@ -346,7 +356,15 @@
                 return;
             }
 
+            const button = document.querySelector('[data-original-content]');
+            if (!button) return;
+
             if (event.data.type === 'JAMES_AUTH_SUCCESS') {
+                // Show success state
+                button.innerHTML = '<i class="fas fa-check mr-2"></i> Success!';
+                button.classList.remove('bg-blue-500');
+                button.classList.add('bg-green-500');
+                
                 // Authentication successful
                 isAuthenticated = true;
                 
@@ -364,14 +382,17 @@
                 // Remove event listener
                 window.removeEventListener('message', handleAuthMessage);
                 
-                // Hide modal and show documentation
-                hideAuthModal();
+                // Hide modal after 2 seconds
+                setTimeout(() => {
+                    hideAuthModal();
+                    showNotification('Authentication successful! Welcome to the documentation.');
+                }, 2000);
                 
-                // Show success message
-                showNotification('Authentication successful! Welcome to the documentation.');
             } else if (event.data.type === 'JAMES_AUTH_ERROR') {
-                // Authentication failed
-                showNotification('Authentication failed: ' + event.data.message, true);
+                // Show failure state
+                button.innerHTML = '<i class="fas fa-times mr-2"></i> Authentication failed';
+                button.classList.remove('bg-blue-500');
+                button.classList.add('bg-red-500');
                 
                 // Close auth window
                 if (authWindow) {
@@ -381,7 +402,20 @@
                 
                 // Remove event listener
                 window.removeEventListener('message', handleAuthMessage);
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    resetButton(button, button.dataset.originalContent);
+                }, 3000);
             }
+        }
+
+        function resetButton(button, originalContent) {
+            button.innerHTML = originalContent;
+            button.disabled = false;
+            button.classList.remove('bg-blue-500', 'bg-green-500', 'bg-red-500');
+            button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            delete button.dataset.originalContent;
         }
 
         function showNotification(message, isError = false) {
