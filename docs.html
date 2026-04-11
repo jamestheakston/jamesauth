@@ -14,6 +14,36 @@
         .code-block code { color: inherit; }
         .section-card { transition: all 0.3s ease; }
         .section-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        
+        /* Modal animations */
+        .modal-content {
+            transform-origin: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        
+        .auth-modal.hidden .modal-overlay {
+            opacity: 0;
+        }
+        
+        .auth-modal.hidden .modal-content {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        
+        .auth-modal:not(.hidden) .modal-overlay {
+            opacity: 1;
+        }
+        
+        .auth-modal:not(.hidden) .modal-content {
+            opacity: 1;
+            transform: scale(1);
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
@@ -213,6 +243,39 @@
 
     </main>
 
+    <!-- Authentication Required Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 auth-modal">
+        <div class="modal-overlay absolute inset-0"></div>
+        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content">
+            <div class="h-3 w-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center text-white text-3xl mx-auto mb-6 shadow-xl">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Authentication Required</h2>
+                    <p class="text-slate-500 font-medium">Please authenticate with James Auth to access the documentation</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <button onclick="authenticateWithJamesAuth()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98] flex items-center justify-center">
+                        <i class="fas fa-id-card-clip mr-2"></i> Continue with James Auth
+                    </button>
+                    
+                    <button onclick="window.location.href='index.html'" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all flex items-center justify-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+                    </button>
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-slate-100">
+                    <p class="text-xs text-slate-500 text-center">
+                        This documentation contains sensitive integration details and requires authentication to access.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-slate-900 text-white py-8 mt-12">
         <div class="max-w-4xl mx-auto px-6 text-center">
             <p class="text-slate-400 text-sm">James Auth Documentation - Internal Use Only</p>
@@ -221,6 +284,130 @@
     </footer>
 
 <script>
+        let isAuthenticated = false;
+        let authWindow = null;
+
+        // Check authentication status on page load
+        window.onload = function() {
+            checkAuthentication();
+        };
+
+        function checkAuthentication() {
+            // Check if user is authenticated (you can implement this with localStorage, cookies, or session storage)
+            const authStatus = localStorage.getItem('docs_authenticated');
+            const authExpiry = localStorage.getItem('docs_auth_expiry');
+            
+            if (authStatus === 'true' && authExpiry && new Date(authExpiry) > new Date()) {
+                isAuthenticated = true;
+            } else {
+                // Show authentication modal
+                showAuthModal();
+            }
+        }
+
+        function showAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function authenticateWithJamesAuth() {
+            // Open the authentication window
+            const authUrl = 'https://jamesauth.pages.dev/auth.html?app=authdocs&scopes=profile';
+            const width = 500;
+            const height = 600;
+            const left = (window.innerWidth - width) / 2;
+            const top = (window.innerHeight - height) / 2;
+
+            authWindow = window.open(
+                authUrl,
+                'james-auth',
+                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`
+            );
+
+            // Listen for messages from the auth window
+            window.addEventListener('message', handleAuthMessage);
+
+            // Check if window was closed by user
+            const checkClosed = setInterval(() => {
+                if (authWindow && authWindow.closed) {
+                    clearInterval(checkClosed);
+                    window.removeEventListener('message', handleAuthMessage);
+                    authWindow = null;
+                }
+            }, 1000);
+        }
+
+        function handleAuthMessage(event) {
+            // Verify the origin for security
+            if (event.origin !== 'https://jamesauth.pages.dev') {
+                return;
+            }
+
+            if (event.data.type === 'JAMES_AUTH_SUCCESS') {
+                // Authentication successful
+                isAuthenticated = true;
+                
+                // Store authentication status (expires in 24 hours)
+                localStorage.setItem('docs_authenticated', 'true');
+                localStorage.setItem('docs_auth_expiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
+                localStorage.setItem('docs_user', JSON.stringify(event.data.user));
+                
+                // Close auth window
+                if (authWindow) {
+                    authWindow.close();
+                    authWindow = null;
+                }
+                
+                // Remove event listener
+                window.removeEventListener('message', handleAuthMessage);
+                
+                // Hide modal and show documentation
+                hideAuthModal();
+                
+                // Show success message
+                showNotification('Authentication successful! Welcome to the documentation.');
+            } else if (event.data.type === 'JAMES_AUTH_ERROR') {
+                // Authentication failed
+                showNotification('Authentication failed: ' + event.data.message, true);
+                
+                // Close auth window
+                if (authWindow) {
+                    authWindow.close();
+                    authWindow = null;
+                }
+                
+                // Remove event listener
+                window.removeEventListener('message', handleAuthMessage);
+            }
+        }
+
+        function showNotification(message, isError = false) {
+            // Create a simple notification (you could enhance this with a toast component)
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-[200] transition-all ${
+                isError ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
         function copyMarkdown() {
             const markdownContent = `# James Auth Documentation
 
