@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Auth | Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .code-block { background: #1e293b; color: #e2e8f0; border-radius: 0.5rem; padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.875rem; overflow-x: auto; }
+        .code-block code { color: inherit; }
+        .section-card { transition: all 0.3s ease; }
+        .section-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <nav class="glass border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i class="fas fa-id-card-clip text-xl"></i>
+            </div>
+            <span class="text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="index.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-6 lg:py-12 flex-grow w-full">
+        
+        <div class="mb-12 text-center">
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Documentation</h1>
+            <p class="text-slate-500 text-lg font-medium">Internal documentation for James Auth integration and usage</p>
+        </div>
+
+        <div class="space-y-8">
+            
+            <!-- Overview Section -->
+            <div class="section-card bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-blue-100 text-blue-600 p-3 rounded-xl">
+                        <i class="fas fa-info-circle text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Overview</h2>
+                </div>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-600 leading-relaxed">
+                        James Auth is a centralized authentication system that allows users to authenticate once and access multiple applications seamlessly. This documentation explains how to integrate your applications with the James Auth platform.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Authentication Flow Section -->
+            <div class="section-card bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-green-100 text-green-600 p-3 rounded-xl">
+                        <i class="fas fa-key text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Authentication Flow</h2>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <h3 class="font-bold text-slate-900 mb-2">With Redirect URL</h3>
+                        <p class="text-slate-600 text-sm mb-3">If you provide a redirect_url in your service configuration, users will be redirected back to your application with authentication data as URL parameters.</p>
+                        <div class="code-block">
+                            <code>https://yourapp.com/auth?user_id=123&email=user@example.com&name=John Doe&avatar=https://example.com/photo.jpg&cloud_storage=true</code>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <h3 class="font-bold text-slate-900 mb-2">Without Redirect URL</h3>
+                        <p class="text-slate-600 text-sm mb-3">If no redirect_url is provided, the authentication window will close and send data to your application via postMessage.</p>
+                        <div class="code-block">
+                            <code>window.addEventListener('message', (event) => {
+    if (event.data.type === 'JAMES_AUTH_SUCCESS') {
+        console.log('User authenticated:', event.data.user);
+        console.log('Service:', event.data.service);
+    }
+});</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Integration Section -->
+            <div class="section-card bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-purple-100 text-purple-600 p-3 rounded-xl">
+                        <i class="fas fa-plug text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Integration</h2>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-3">Step 1: Register Your Service</h3>
+                        <p class="text-slate-600 text-sm mb-3">Add your service to the Supabase services table with the following fields:</p>
+                        <div class="code-block">
+                            <code>{
+    "name": "Your App Name",
+    "short_name": "yourapp",
+    "description": "App description",
+    "icon_class": "fa-cube",
+    "accent_color": "blue-600",
+    "redirect_url": "https://yourapp.com/auth", // Optional
+    "privacy_url": "https://yourapp.com/privacy" // Optional
+}</code>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-3">Step 2: Initiate Authentication</h3>
+                        <p class="text-slate-600 text-sm mb-3">Redirect users to the auth endpoint with required parameters:</p>
+                        <div class="code-block">
+                            <code>https://yourdomain.com/auth.html?app=yourapp&scopes=email,profile,sync</code>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-3">Step 3: Handle Response</h3>
+                        <p class="text-slate-600 text-sm mb-3">Process the authentication response based on your integration method (redirect URL or postMessage).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scopes Section -->
+            <div class="section-card bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-orange-100 text-orange-600 p-3 rounded-xl">
+                        <i class="fas fa-shield-alt text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Available Scopes</h2>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-1">email</h4>
+                        <p class="text-slate-600 text-sm">Access user's email address</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-1">profile</h4>
+                        <p class="text-slate-600 text-sm">Access user's name and avatar</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-1">sync</h4>
+                        <p class="text-slate-600 text-sm">Sync user preferences</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <h4 class="font-bold text-slate-900 mb-1">storedatacloud</h4>
+                        <p class="text-slate-600 text-sm">Store data in cloud (requires user consent)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Storage Section -->
+            <div class="section-card bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-red-100 text-red-600 p-3 rounded-xl">
+                        <i class="fas fa-database text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Data Storage</h2>
+                </div>
+                <div class="prose prose-slate max-w-none">
+                    <p class="text-slate-600 leading-relaxed mb-4">
+                        <strong>Important:</strong> User data is stored in your application's platform, not in the James Auth database. James Auth only handles authentication and provides user identity information to your application.
+                    </p>
+                    <p class="text-slate-600 leading-relaxed">
+                        When using the <code>storedatacloud</code> scope, users must explicitly consent to cloud storage through a checkbox that references your privacy policy.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="section-card bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-yellow-100 text-yellow-600 p-3 rounded-xl">
+                        <i class="fas fa-lock text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Security Considerations</h2>
+                </div>
+                <div class="space-y-3">
+                    <ul class="space-y-2">
+                        <li class="flex items-start space-x-2">
+                            <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                            <span class="text-slate-600 text-sm">Always validate the authentication data received</span>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                            <span class="text-slate-600 text-sm">Use HTTPS for all redirect URLs</span>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                            <span class="text-slate-600 text-sm">Request only the scopes you actually need</span>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                            <span class="text-slate-600 text-sm">Provide a clear privacy policy for cloud storage</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-900 text-white py-8 mt-12">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <p class="text-slate-400 text-sm">James Auth Documentation - Internal Use Only</p>
+            <p class="text-slate-500 text-xs mt-2">Developed by James Theakston</p>
+        </div>
+    </footer>
+
+</body>
+</html>
