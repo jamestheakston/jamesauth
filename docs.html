@@ -68,8 +68,9 @@
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
                         <h3 class="font-bold text-slate-900 mb-2">With Redirect URL</h3>
                         <p class="text-slate-600 text-sm mb-3">If you provide a redirect_url in your service configuration, users will be redirected back to your application with authentication data as URL parameters.</p>
+                        <p class="text-slate-600 text-sm mb-3 font-medium">For example, you could redirect to <code class="bg-slate-200 px-2 py-1 rounded text-xs">example.com/authsuccess.html?params</code> and receive the data like this:</p>
                         <div class="code-block">
-                            <code>https://yourapp.com/auth?user_id=123&email=user@example.com&name=John Doe&avatar=https://example.com/photo.jpg&cloud_storage=true</code>
+                            <code>https://example.com/authsuccess.html?user_id=123&email=user@example.com&name=John Doe&avatar=https://example.com/photo.jpg&cloud_storage=true</code>
                         </div>
                     </div>
                     
@@ -108,7 +109,7 @@
     "icon_class": "fa-cube",
     "accent_color": "blue-600",
     "redirect_url": "https://yourapp.com/auth", // Optional
-    "privacy_url": "https://yourapp.com/privacy" // Optional
+    "privacy_url": "https://yourapp.com/privacy" // Required if using storedatacloud scope
 }</code>
                         </div>
                     </div>
@@ -151,7 +152,8 @@
                     </div>
                     <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
                         <h4 class="font-bold text-slate-900 mb-1">storedatacloud</h4>
-                        <p class="text-slate-600 text-sm">Store data in cloud (requires user consent)</p>
+                        <p class="text-slate-600 text-sm">Store data in cloud (requires user consent and privacy_url)</p>
+                        <p class="text-red-600 text-xs mt-1 font-medium">Note: privacy_url is required in service configuration for this scope</p>
                     </div>
                 </div>
             </div>
