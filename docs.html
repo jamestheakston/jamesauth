@@ -59,6 +59,9 @@
             <button onclick="copyMarkdown()" class="text-sm font-bold text-green-600 hover:text-green-700 transition-colors bg-green-50 px-3 py-1.5 rounded-lg flex items-center">
                 <i class="fas fa-copy mr-2"></i> Copy MD
             </button>
+            <button onclick="logout()" class="text-sm font-bold text-red-600 hover:text-red-700 transition-colors bg-red-50 px-3 py-1.5 rounded-lg flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
             <a href="index.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
             </a>
@@ -293,11 +296,59 @@
             const authExpiry = localStorage.getItem('docs_auth_expiry');
             
             if (authStatus === 'true' && authExpiry && new Date(authExpiry) > new Date()) {
-                isAuthenticated = true;
+                // Also check if authdocs service is still connected
+                checkServiceConnection();
             } else {
                 // Show authentication modal
                 showAuthModal();
             }
+        }
+
+        function checkServiceConnection() {
+            // Check if authdocs service is still connected
+            const connectedServices = localStorage.getItem('connected_services');
+            
+            if (connectedServices) {
+                try {
+                    const connectedIds = JSON.parse(connectedServices);
+                    if (connectedIds.includes('authdocs')) {
+                        // Service is still connected, authentication is valid
+                        isAuthenticated = true;
+                    } else {
+                        // Service was unlinked, clear authentication and show modal
+                        clearAuthentication();
+                        showAuthModal();
+                    }
+                } catch (error) {
+                    // Error parsing, assume not connected
+                    clearAuthentication();
+                    showAuthModal();
+                }
+            } else {
+                // No connected services data, assume not connected
+                clearAuthentication();
+                showAuthModal();
+            }
+        }
+
+        function clearAuthentication() {
+            isAuthenticated = false;
+            localStorage.removeItem('docs_authenticated');
+            localStorage.removeItem('docs_auth_expiry');
+            localStorage.removeItem('docs_user');
+        }
+
+        function logout() {
+            // Clear authentication data
+            clearAuthentication();
+            
+            // Show notification
+            showNotification('Logged out successfully');
+            
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+                window.location.href = 'https://jamesauth.pages.dev/login.html';
+            }, 1500);
         }
 
         function showAuthModal() {
