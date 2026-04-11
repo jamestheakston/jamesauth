@@ -105,6 +105,23 @@
                 <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> Discovery Store
             </h3>
             <div id="available-grid" class="grid md:grid-cols-2 gap-6 mb-12"></div>
+
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 mb-12">
+                <div class="flex items-start space-x-4">
+                    <div class="bg-blue-600 text-white p-3 rounded-xl flex-shrink-0">
+                        <i class="fas fa-chrome text-xl"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="text-lg font-bold text-blue-900 mb-2">Chrome Extension Required</h4>
+                        <p class="text-blue-700 text-sm leading-relaxed">
+                            To use these integrations, you must install the James Auth Chrome extension. The extension enables secure communication between your browser and the services, providing a seamless authentication experience across all connected applications.
+                        </p>
+                        <button class="mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-all flex items-center">
+                            <i class="fas fa-download mr-2"></i> Get Chrome Extension
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="settings-view" class="hidden max-w-2xl mx-auto">
@@ -188,11 +205,33 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        // Wait for Supabase to be loaded before initializing
+        let supabaseClient;
         let currentUser = null;
+        
+        function initializeSupabase() {
+            if (typeof supabase !== 'undefined') {
+                const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Initialize the app after Supabase is ready
+                window.onload = async () => {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session) await loadDashboard();
+                };
+            } else {
+                console.error('Supabase library not loaded');
+                showToast('Error: Supabase library not loaded', true);
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSupabase);
+        } else {
+            initializeSupabase();
+        }
         let allServices = [];
         let connectedIds = [];
         let showingSettings = false;
@@ -222,6 +261,10 @@
         }
 
         async function signUp() {
+            if (!supabaseClient) {
+                showToast('Supabase not initialized', true);
+                return;
+            }
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signUp({ email, password });
@@ -230,6 +273,10 @@
         }
 
         async function signIn() {
+            if (!supabaseClient) {
+                showToast('Supabase not initialized', true);
+                return;
+            }
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -238,6 +285,10 @@
         }
 
         async function signOut() {
+            if (!supabaseClient) {
+                window.location.reload();
+                return;
+            }
             await supabaseClient.auth.signOut();
             window.location.reload();
         }
@@ -273,6 +324,12 @@
             const avatar = document.getElementById('input-avatar').value;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+            if (!supabaseClient) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Save Profile';
+                showToast('Supabase not initialized', true);
+                return;
+            }
             const { data, error } = await supabaseClient.auth.updateUser({
                 data: { display_name: name, avatar_url: avatar }
             });
@@ -304,6 +361,7 @@
         }
 
         async function loadDashboard() {
+            if (!supabaseClient) return;
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
             currentUser = user;
@@ -315,6 +373,7 @@
         }
 
         async function fetchServicesAndConnections() {
+            if (!supabaseClient || !currentUser) return;
             const { data: services } = await supabaseClient.from('services').select('*');
             const { data: connections } = await supabaseClient.from('user_connections').select('service_id').eq('user_id', currentUser.id);
             allServices = services || [];
@@ -365,15 +424,12 @@
         function closeModal() { document.getElementById('service-modal').classList.add('hidden'); }
 
         async function unlinkService(id) {
+            if (!supabaseClient || !currentUser) return;
             await supabaseClient.from('user_connections').delete().eq('user_id', currentUser.id).eq('service_id', id);
             connectedIds = connectedIds.filter(cid => cid !== id);
             renderGrids();
         }
 
-        window.onload = async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) await loadDashboard();
-        };
     </script>
 </body>
 </html>
