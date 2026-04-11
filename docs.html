@@ -26,6 +26,9 @@
             <span class="text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
         </div>
         <div class="flex items-center space-x-4">
+            <button onclick="copyMarkdown()" class="text-sm font-bold text-green-600 hover:text-green-700 transition-colors bg-green-50 px-3 py-1.5 rounded-lg flex items-center">
+                <i class="fas fa-copy mr-2"></i> Copy MD
+            </button>
             <a href="index.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
             </a>
@@ -217,5 +220,103 @@
         </div>
     </footer>
 
+<script>
+        function copyMarkdown() {
+            const markdownContent = `# James Auth Documentation
+
+## Overview
+James Auth is a centralized authentication system that allows users to authenticate once and access multiple applications seamlessly. This documentation explains how to integrate your applications with the James Auth platform.
+
+## Authentication Flow
+
+### With Redirect URL
+If you provide a redirect_url in your service configuration, users will be redirected back to your application with authentication data as URL parameters.
+
+For example, you could redirect to \`example.com/authsuccess.html?params\` and receive the data like this:
+\`\`\`
+https://example.com/authsuccess.html?user_id=123&email=user@example.com&name=John Doe&avatar=https://example.com/photo.jpg&cloud_storage=true
+\`\`\`
+
+### Without Redirect URL
+If no redirect_url is provided, the authentication window will close and send data to your application via postMessage.
+\`\`\`javascript
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'JAMES_AUTH_SUCCESS') {
+        console.log('User authenticated:', event.data.user);
+        console.log('Service:', event.data.service);
+    }
+});
+\`\`\`
+
+## Integration
+
+### Step 1: Register Your Service
+Add your service to the Supabase services table with the following fields:
+\`\`\`json
+{
+    "name": "Your App Name",
+    "short_name": "yourapp",
+    "description": "App description",
+    "icon_class": "fa-cube",
+    "accent_color": "blue-600",
+    "redirect_url": "https://yourapp.com/auth", // Optional
+    "privacy_url": "https://yourapp.com/privacy" // Required if using storedatacloud scope
+}
+\`\`\`
+
+### Step 2: Initiate Authentication
+Redirect users to the auth endpoint with required parameters:
+\`\`\`
+https://yourdomain.com/auth.html?app=yourapp&scopes=email,profile,sync
+\`\`\`
+
+### Step 3: Handle Response
+Process the authentication response based on your integration method (redirect URL or postMessage).
+
+## Available Scopes
+
+- **email** - Access user's email address
+- **profile** - Access user's name and avatar
+- **sync** - Sync user preferences
+- **storedatacloud** - Store data in cloud (requires user consent and privacy_url)
+
+Note: privacy_url is required in service configuration for storedatacloud scope.
+
+## Data Storage
+
+**Important:** User data is stored in your application's platform, not in the James Auth database. James Auth only handles authentication and provides user identity information to your application.
+
+When using the \`storedatacloud\` scope, users must explicitly consent to cloud storage through a checkbox that references your privacy policy.
+
+## Security Considerations
+
+- Always validate the authentication data received
+- Use HTTPS for all redirect URLs
+- Request only the scopes you actually need
+- Provide a clear privacy policy for cloud storage
+
+---
+
+*James Auth Documentation - Internal Use Only*
+*Developed by James Theakston*`;
+
+            navigator.clipboard.writeText(markdownContent).then(() => {
+                // Show success feedback
+                const button = event.target.closest('button');
+                const originalContent = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-2"></i> Copied!';
+                button.classList.remove('text-green-600', 'hover:text-green-700');
+                button.classList.add('text-green-700');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                    button.classList.remove('text-green-700');
+                    button.classList.add('text-green-600', 'hover:text-green-700');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy markdown:', err);
+            });
+        }
+    </script>
 </body>
 </html>
