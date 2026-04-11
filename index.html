@@ -197,6 +197,11 @@
                             <div class="text-sm font-bold text-slate-700">James Theakston</div>
                         </div>
                     </div>
+                    <div id="launch-service-container" class="hidden">
+                        <button id="launch-service-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center">
+                            <i class="fas fa-rocket mr-2"></i> Launch Service
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -481,6 +486,16 @@
                 chromeExtensionNotice.classList.remove('hidden');
             } else {
                 chromeExtensionNotice.classList.add('hidden');
+            }
+            
+            // Show Launch Service button if launch_url exists
+            const launchContainer = document.getElementById('launch-service-container');
+            const launchBtn = document.getElementById('launch-service-btn');
+            if (s.launch_url) {
+                launchContainer.classList.remove('hidden');
+                launchBtn.onclick = () => window.open(s.launch_url, '_blank');
+            } else {
+                launchContainer.classList.add('hidden');
             }
             
             modal.classList.remove('hidden');
