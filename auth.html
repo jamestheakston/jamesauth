@@ -76,6 +76,7 @@
             <div class="text-center mb-8">
                 <h1 class="text-2xl font-black text-slate-900 mb-2">Authorize Access</h1>
                 <p class="text-slate-500 text-sm"><span id="app-name" class="font-bold text-slate-800">Application</span> wants to access your James Auth account.</p>
+                <p class="text-slate-400 text-xs mt-2">Developed by James Theakston</p>
             </div>
             <div class="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100">
                 <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">This app will be able to:</h4>
@@ -253,19 +254,35 @@
             document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
             document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
             
+            // Handle privacy policy URL
+            const privacyLink = document.getElementById('privacy-link');
             if (targetService.privacy_url) {
-                document.getElementById('privacy-link').href = targetService.privacy_url;
+                privacyLink.href = targetService.privacy_url;
+                privacyLink.textContent = `${targetService.name} Privacy Policy`;
+            } else {
+                privacyLink.href = '#';
+                privacyLink.textContent = 'Privacy Policy';
+                privacyLink.style.pointerEvents = 'none';
+                privacyLink.style.color = '#94a3b8';
             }
 
             const scopeContainer = document.getElementById('scope-list');
+            let hasValidScopes = false;
+            
             activeScopes.forEach(s => {
                 if (s === 'storedatacloud') {
                     requiresCloudConsent = true;
                     document.getElementById('cloud-storage-container').classList.remove('hidden');
-                } else {
+                } else if (scopeMap[s]) {
+                    hasValidScopes = true;
                     scopeContainer.innerHTML += `<li class="flex items-center text-sm text-slate-600 font-medium"><i class="fas fa-check-circle text-green-500 mr-3"></i> ${scopeMap[s]}</li>`;
                 }
             });
+
+            // Check if there are any valid scopes (excluding storedatacloud)
+            if (!hasValidScopes && !requiresCloudConsent) {
+                return showError("No valid scopes were provided. Authentication requires at least one valid scope (email, profile, sync, or storedatacloud).");
+            }
             toggleAuthButton();
         }
 
