@@ -152,7 +152,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) return showToast(error.message, true);
+            if (error) return showToast(error.message, 'error');
             showToast("Success! Check your email.");
         }
 
@@ -160,7 +160,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) return showToast(error.message, true);
+            if (error) return showToast(error.message, 'error');
             showToast("Signing in...");
             setTimeout(() => {
                 window.location.href = 'index.html';
