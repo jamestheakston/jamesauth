@@ -29,6 +29,18 @@
         </div>
     </nav>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
+        <div class="flex items-center w-full max-w-xs p-4 bg-white rounded-lg shadow-lg border border-gray-200" role="alert">
+            <svg id="toast-icon" class="w-6 h-6 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.122 17.645a7.185 7.185 0 0 1-2.656 2.495 7.06 7.06 0 0 1-3.52.853 6.617 6.617 0 0 1-3.306-.718 6.73 6.73 0 0 1-2.54-2.266c-2.672-4.57.287-8.846.887-9.668A4.448 4.448 0 0 0 8.07 6.31 4.49 4.49 0 0 0 7.997 4c1.284.965 6.43 3.258 5.525 10.631 1.496-1.136 2.7-3.046 2.846-6.216 1.43 1.061 3.985 5.462 1.754 9.23Z"/></svg>
+            <div id="toast-msg" class="ms-2.5 text-sm text-gray-700 border-l border-gray-300 ps-3.5"></div>
+            <button onclick="hideToast()" type="button" class="ms-auto flex items-center justify-center text-gray-600 hover:text-gray-900 bg-transparent border border-transparent hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+            </button>
+        </div>
+    </div>
+
     <main class="max-w-5xl mx-auto p-6 lg:py-12 flex-grow w-full flex items-center justify-center">
         
         <div class="max-w-md mx-auto w-full">
@@ -47,24 +59,11 @@
                         
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Password</label>
-                            <input type="password" id="password" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                            <input type="password" id="password" placeholder="••••••••••" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
                         </div>
                         
                         <button id="main-auth-btn" onclick="signIn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98] flex items-center justify-center mt-2">
                             Sign In
-                        </button>
-                        
-                        <div class="relative">
-                            <div class="absolute inset-0 flex items-center">
-                                <div class="w-full border-t border-slate-200"></div>
-                            </div>
-                            <div class="relative flex justify-center text-sm">
-                                <span class="px-4 bg-white text-slate-500 font-medium">or</span>
-                            </div>
-                        </div>
-                        
-                        <button onclick="signInWithPasskey()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-slate-500/25 active:scale-[0.98] flex items-center justify-center">
-                            <i class="fas fa-fingerprint mr-2"></i> Continue with Passkey
                         </button>
                         
                         <div class="text-center pt-2">
@@ -88,23 +87,52 @@
 
     </main>
 
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl transition-all duration-500 z-[100] flex items-center space-x-3">
-        <div id="toast-icon" class="w-2 h-2 bg-blue-500 rounded-full"></div>
-        <span id="toast-msg" class="text-sm font-medium"></span>
+    <div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[100]">
+        <div class="flex items-center w-full max-w-xs p-4 bg-white rounded-lg shadow-lg border border-gray-200" role="alert">
+            <svg id="toast-icon" class="w-6 h-6 text-blue-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.122 17.645a7.185 7.185 0 0 1-2.656 2.495 7.06 7.06 0 0 1-3.52.853 6.617 6.617 0 0 1-3.306-.718 6.73 6.73 0 0 1-2.54-2.266c-2.672-4.57.287-8.846.887-9.668A4.448 4.448 0 0 0 8.07 6.31 4.49 4.49 0 0 0 7.997 4c1.284.965 6.43 3.258 5.525 10.631 1.496-1.136 2.7-3.046 2.846-6.216 1.43 1.061 3.985 5.462 1.754 9.23Z"/></svg>
+            <div id="toast-msg" class="ms-2.5 text-sm text-gray-700 border-l border-gray-300 ps-3.5"></div>
+            <button onclick="hideToast()" type="button" class="ms-auto flex items-center justify-center text-gray-600 hover:text-gray-900 bg-transparent border border-transparent hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/></svg>
+            </button>
+        </div>
     </div>
-
     <script>
         const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function showToast(msg, isError = false) {
+        function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
-            document.getElementById('toast-msg').innerText = msg;
-            icon.className = isError ? 'w-2 h-2 bg-red-500 rounded-full' : 'w-2 h-2 bg-blue-500 rounded-full';
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+            const msgElement = document.getElementById('toast-msg');
+            
+            msgElement.innerText = msg;
+            
+            // Set icon and color based on type
+            if (type === 'error') {
+                icon.innerHTML = '<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>';
+                icon.className = 'w-6 h-6 text-red-600';
+            } else if (type === 'warning') {
+                icon.innerHTML = '<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 4.88c-.866-1.5-3.032-1.5-3.898 0L2.697 15.126Z"/>';
+                icon.className = 'w-6 h-6 text-yellow-600';
+            } else {
+                icon.innerHTML = '<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.122 17.645a7.185 7.185 0 0 1-2.656 2.495 7.06 7.06 0 0 1-3.52.853 6.617 6.617 0 0 1-3.306-.718 6.73 6.73 0 0 1-2.54-2.266c-2.672-4.57.287-8.846.887-9.668A4.448 4.448 0 0 0 8.07 6.31 4.49 4.49 0 0 0 7.997 4c1.284.965 6.43 3.258 5.525 10.631 1.496-1.136 2.7-3.046 2.846-6.216 1.43 1.061 3.985 5.462 1.754 9.23Z"/>';
+                icon.className = 'w-6 h-6 text-green-600';
+            }
+            
+            // Show toast
+            toast.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('hidden');
         }
 
         function toggleAuthMode() {
@@ -141,99 +169,7 @@
             }, 1000);
         }
 
-        async function signInWithPasskey() {
-            try {
-                showToast("Initiating passkey authentication...");
-                
-                // Check if WebAuthn is supported
-                if (!window.PublicKeyCredential) {
-                    showToast("Passkeys are not supported on this device", true);
-                    return;
-                }
-
-                // Get authentication options from Supabase
-                const { data, error } = await supabaseClient.auth.signInWithPasskey();
-                if (error) {
-                    showToast(error.message, true);
-                    return;
-                }
-
-                // Convert the options to the format expected by WebAuthn
-                const options = {
-                    challenge: base64urlToArrayBuffer(data.options.challenge),
-                    allowCredentials: data.options.allowCredentials.map(cred => ({
-                        ...cred,
-                        id: base64urlToArrayBuffer(cred.id)
-                    })),
-                    userVerification: data.options.userVerification,
-                    timeout: data.options.timeout
-                };
-
-                // Get the credential
-                const credential = await navigator.credentials.get({
-                    publicKey: options
-                });
-
-                // Convert the credential back to the format expected by Supabase
-                const response = {
-                    id: credential.id,
-                    rawId: arrayBufferToBase64url(credential.rawId),
-                    response: {
-                        authenticatorData: arrayBufferToBase64url(credential.response.authenticatorData),
-                        clientDataJSON: arrayBufferToBase64url(credential.response.clientDataJSON),
-                        signature: arrayBufferToBase64url(credential.response.signature),
-                        userHandle: credential.response.userHandle ? arrayBufferToBase64url(credential.response.userHandle) : null
-                    },
-                    type: credential.type,
-                    clientExtensionResults: credential.clientExtensionResults
-                };
-
-                // Verify with Supabase
-                const { data: sessionData, error: verifyError } = await supabaseClient.auth.verifyPasskey(response);
-                
-                if (verifyError) {
-                    showToast(verifyError.message, true);
-                    return;
-                }
-
-                showToast("Successfully authenticated with passkey!");
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-
-            } catch (error) {
-                console.error('Passkey authentication error:', error);
-                if (error.name === 'NotAllowedError') {
-                    showToast("Passkey authentication was cancelled", true);
-                } else if (error.name === 'InvalidStateError') {
-                    showToast("No passkey found for this account", true);
-                } else {
-                    showToast("Passkey authentication failed: " + error.message, true);
-                }
-            }
-        }
-
-        // Helper functions for base64url conversion
-        function base64urlToArrayBuffer(base64url) {
-            const padding = '='.repeat((4 - base64url.length % 4) % 4);
-            const base64 = (base64url + padding).replace(/-/g, '+').replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray.buffer;
-        }
-
-        function arrayBufferToBase64url(buffer) {
-            const bytes = new Uint8Array(buffer);
-            let str = '';
-            for (let charCode of bytes) {
-                str += String.fromCharCode(charCode);
-            }
-            return window.btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-        }
-
+        
         // Check if user is already authenticated and redirect to dashboard
         window.onload = async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
