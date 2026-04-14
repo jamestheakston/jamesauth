@@ -1,159 +1,144 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>James Auth | Sign In</title>
+    <title>Authorize third-party application</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .spinner { border: 3px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #2563eb; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-6">
 
-    <nav class="glass border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center space-x-2">
-            <div class="bg-blue-600 text-white p-2 rounded-lg">
-                <i class="fas fa-id-card-clip text-xl"></i>
+    <div id="loading-view" class="flex flex-col items-center justify-center space-y-4">
+        <div class="spinner"></div>
+        <p class="text-slate-500 font-medium text-sm animate-pulse">Authenticating...</p>
+    </div>
+
+    <div id="error-view" class="hidden max-w-md w-full text-center p-8 bg-white rounded-3xl shadow-xl border border-red-100">
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+            <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <h2 class="text-xl font-black text-slate-900 mb-2">Invalid Request</h2>
+        <p id="error-msg" class="text-sm text-slate-500 mb-6"></p>
+        <button onclick="window.close()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">Close Window</button>
+    </div>
+
+    <div id="auth-view" class="hidden max-w-md w-full">
+        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
+            <div class="text-center mb-8">
+                <h2 id="login-title" class="text-3xl font-extrabold text-slate-900 mb-2">Welcome Back</h2>
+                <p id="login-subtitle" class="text-sm text-slate-500">Sign in to James Auth to continue</p>
             </div>
-            <span class="text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
-        </div>
-        <div class="flex items-center space-x-4">
-            <a href="index.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-            </a>
-        </div>
-    </nav>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="hidden fixed top-4 right-4 z-[100] translate-x-full transition-transform duration-300 ease-in-out">
-        <div class="flex items-center w-full max-w-xs p-4 bg-white rounded-lg shadow-lg border border-gray-200" role="alert">
-            <i id="toast-icon" class="fas fa-check-circle text-green-600 text-xl"></i>
-            <div id="toast-msg" class="ms-3 text-sm text-gray-700 flex-grow"></div>
-            <button onclick="hideToast()" type="button" class="ms-auto flex items-center justify-center text-gray-600 hover:text-gray-900 bg-transparent border border-transparent hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none" aria-label="Close">
-                <span class="sr-only">Close</span>
-                <i class="fas fa-times text-gray-600"></i>
-            </button>
+            <div class="space-y-5">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
+                    <input type="email" id="email" placeholder="name@example.com" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                </div>
+                <button onclick="signIn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98]">Sign In</button>
+            </div>
         </div>
     </div>
 
-    <main class="max-w-5xl mx-auto p-6 lg:py-12 flex-grow w-full flex items-center justify-center">
-        
-        <div class="max-w-md mx-auto w-full">
-            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
-                <div id="login-container">
-                    <div class="text-center mb-8">
-                        <h2 id="auth-title" class="text-3xl font-extrabold text-slate-900 mb-2">Welcome Back</h2>
-                        <p id="auth-subtitle" class="text-sm text-slate-500">Sign in to your James Auth account</p>
+    <div id="request-view" class="hidden bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden">
+        <div class="h-2 w-full bg-blue-600"></div>
+        <div class="p-8">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 overflow-hidden">
+                        <img id="user-avatar" class="hidden w-full h-full object-cover">
+                        <i id="user-icon" class="fas fa-user text-xs"></i>
                     </div>
-                    
-                    <div class="space-y-5">
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
-                            <input type="email" id="email" placeholder="name@example.com" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
-                        </div>
-                        
-                        <div class="space-y-1.5">
-                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Password</label>
-                            <input type="password" id="password" placeholder="••••••••••" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
-                        </div>
-                        
-                        <button id="main-auth-btn" onclick="signIn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98] flex items-center justify-center mt-2">
-                            Sign In
-                        </button>
-                        
-                        <div class="text-center pt-2">
-                            <button id="toggle-auth" onclick="toggleAuthMode()" class="text-sm font-bold text-blue-600 hover:text-blue-700">
-                                Don't have an account? Create one
-                            </button>
-                        </div>
+                    <div class="flex flex-col">
+                        <span id="user-display-name" class="text-xs font-bold text-slate-700 leading-none">User</span>
+                        <button onclick="signOut()" class="text-[10px] text-red-500 font-bold hover:underline text-left">Logout</button>
                     </div>
-
-                    <div class="mt-10 pt-8 border-t border-slate-100">
-                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
-                            <i class="fas fa-circle-info mr-2"></i> What is James Auth?
-                        </h4>
-                        <p class="text-[13px] text-slate-600 leading-relaxed">
-                            James Auth is one platform you can use to connect to all my apps. Manage your entire workspace with a single identity.
-                        </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center text-lg shadow-md"><i class="fas fa-id-card-clip"></i></div>
+                    <i class="fas fa-arrow-right text-slate-300 text-xs"></i>
+                    <div id="app-icon-container" class="w-10 h-10 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center text-lg border border-slate-200">
+                        <i id="app-icon" class="fas fa-question"></i>
                     </div>
                 </div>
             </div>
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-black text-slate-900 mb-2">Authorize Access</h1>
+                <p class="text-slate-500 text-sm"><span id="app-name" class="font-bold text-slate-800">Application</span> wants to access your James Auth account.</p>
+                <p class="text-slate-400 text-xs mt-2">Developed by James Theakston</p>
+            </div>
+            <div class="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100">
+                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">This app will be able to:</h4>
+                <ul id="scope-list" class="space-y-3"></ul>
+            </div>
+            <div id="cloud-storage-container" class="hidden mb-8 px-2 p-4 bg-slate-50 rounded-2xl border border-blue-100">
+                <label class="flex items-start space-x-3 cursor-pointer group">
+                    <div class="relative flex items-center mt-0.5">
+                        <input type="checkbox" id="cloud-storage-checkbox" onchange="toggleAuthButton()" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-300 bg-white checked:bg-blue-600 checked:border-blue-600 transition-all focus:ring-2 focus:ring-blue-500/20">
+                        <i class="fas fa-check absolute text-[10px] text-white opacity-0 peer-checked:opacity-100 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-opacity"></i>
+                    </div>
+                    <div class="flex-grow">
+                        <span class="text-sm font-bold text-slate-700 block">Cloud Synchronization</span>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed italic">
+                            I agree to the <a id="privacy-link" href="#" target="_blank" class="text-blue-600 underline font-bold">Privacy Policy</a> and acknowledge that my data will be stored in the <span id="app-name-inline" class="font-bold">the application's</span> database, not the James Auth database.
+                        </p>
+                    </div>
+                </label>
+            </div>
+            <div class="space-y-3">
+                <button id="auth-btn" onclick="handleAuthorization()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all hover:bg-blue-600 active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed">Allow Access</button>
+                <button onclick="window.close()" class="w-full text-slate-400 font-bold py-3 text-sm hover:text-slate-600 transition-colors">Cancel Request</button>
+            </div>
         </div>
+    </div>
 
-    </main>
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl transition-all duration-500 z-[100] flex items-center space-x-3">
+        <div id="toast-icon" class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        <span id="toast-msg" class="text-sm font-medium"></span>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function showToast(msg, type = 'success') {
+        let currentUser = null;
+        let targetService = null;
+        let requiresCloudConsent = false;
+        let activeScopes = [];
+
+        function showToast(msg, isError = false) {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
-            const msgElement = document.getElementById('toast-msg');
-            
-            msgElement.innerText = msg;
-            
-            // Set icon and color based on type
-            icon.className = 'text-xl';
-            if (type === 'error') {
-                icon.className += ' fas fa-exclamation-circle text-red-600';
-            } else if (type === 'warning') {
-                icon.className += ' fas fa-exclamation-triangle text-yellow-600';
-            } else {
-                icon.className += ' fas fa-check-circle text-green-600';
-            }
-            
-            // Show toast with slide-in animation
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-                toast.classList.add('translate-x-0');
-            }, 10);
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                hideToast();
-            }, 5000);
+            document.getElementById('toast-msg').innerText = msg;
+            icon.className = isError ? 'w-2 h-2 bg-red-500 rounded-full' : 'w-2 h-2 bg-blue-500 rounded-full';
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
         }
 
-        function hideToast() {
-            const toast = document.getElementById('toast');
-            toast.classList.remove('translate-x-0');
-            toast.classList.add('translate-x-full');
-            
-            // Hide after animation completes
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 300);
+        function showError(msg) {
+            document.getElementById('loading-view').classList.add('hidden');
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('request-view').classList.add('hidden');
+            document.getElementById('error-view').classList.remove('hidden');
+            document.getElementById('error-msg').innerText = msg;
         }
 
-        function toggleAuthMode() {
-            const btn = document.getElementById('main-auth-btn');
-            const toggle = document.getElementById('toggle-auth');
-            const isSignUp = btn.innerText === "Sign In";
-            if (isSignUp) {
-                btn.innerText = "Create Account";
-                btn.onclick = signUp;
-                toggle.innerText = "Already have an account? Sign In";
-            } else {
-                btn.innerText = "Sign In";
-                btn.onclick = signIn;
-                toggle.innerText = "Don't have an account? Create one";
-            }
-        }
-
-        async function signUp() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) return showToast(error.message, true);
-            showToast("Success! Check your email.");
+        function toggleAuthButton() {
+            const btn = document.getElementById('auth-btn');
+            const checkbox = document.getElementById('cloud-storage-checkbox');
+            btn.disabled = requiresCloudConsent ? !checkbox.checked : false;
         }
 
         async function signIn() {
@@ -161,20 +146,149 @@
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) return showToast(error.message, true);
-            showToast("Signing in...");
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
+            window.location.reload();
         }
 
-        
-        // Check if user is already authenticated and redirect to dashboard
-        window.onload = async () => {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                window.location.href = 'index.html';
+        async function signOut() {
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+        }
+
+        async function finalizeAuth(showNotification = true) {
+            const hasEmail = activeScopes.includes('email');
+            const hasProfile = activeScopes.includes('profile');
+            const cloudStorageOptIn = document.getElementById('cloud-storage-checkbox').checked;
+
+            const userData = { id: currentUser.id };
+            if (hasEmail) userData.email = currentUser.email;
+            if (hasProfile) {
+                userData.name = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+                userData.avatar = currentUser.user_metadata?.avatar_url || null;
             }
-        };
+            userData.cloud_storage = cloudStorageOptIn;
+
+            if (targetService.redirect_url) {
+                const url = new URL(targetService.redirect_url);
+                url.searchParams.set('user_id', userData.id);
+                if (hasEmail) url.searchParams.set('email', userData.email);
+                if (hasProfile) {
+                    url.searchParams.set('name', userData.name);
+                    if (userData.avatar) url.searchParams.set('avatar', userData.avatar);
+                }
+                url.searchParams.set('cloud_storage', userData.cloud_storage);
+                window.location.href = url.toString();
+            } else {
+                if (window.opener) {
+                    window.opener.postMessage({
+                        type: 'JAMES_AUTH_SUCCESS',
+                        user: userData,
+                        service: targetService.name
+                    }, "*");
+                }
+                if (showNotification) {
+                    showToast(`Connected to ${targetService.name}!`);
+                }
+                setTimeout(() => window.close(), 1000);
+            }
+        }
+
+        async function handleAuthorization() {
+            if (!targetService) return;
+            if (requiresCloudConsent && !document.getElementById('cloud-storage-checkbox').checked) return;
+            const { error } = await supabaseClient.from('user_connections').insert({ user_id: currentUser.id, service_id: targetService.id });
+            if (error && error.code !== '23505') return showToast(error.message, true);
+            await finalizeAuth();
+        }
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const appShortName = params.get('app');
+            const rawScopes = params.get('scopes');
+
+            if (!appShortName) return showError("Application identifier was not provided.");
+            if (!rawScopes) return showError("No scopes were provided. Authentication requires at least one scope.");
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user;
+
+            const { data: service } = await supabaseClient.from('services').select('*').eq('short_name', appShortName).maybeSingle();
+            if (!service) return showError(`The application "${appShortName}" is not registered on this platform.`);
+            targetService = service;
+
+            const scopeMap = { 
+                'email': 'View your email address', 
+                'profile': 'View your basic profile info', 
+                'sync': 'Sync your preferences', 
+                'storedatacloud': 'Store application data in the cloud' 
+            };
+
+            activeScopes = rawScopes.split(',').map(s => s.trim().toLowerCase());
+            const invalidScopes = activeScopes.filter(s => !scopeMap[s]);
+            if (invalidScopes.length > 0) return showError(`Invalid scopes requested: ${invalidScopes.join(', ')}`);
+
+            if (!currentUser) {
+                document.getElementById('loading-view').classList.add('hidden');
+                document.getElementById('auth-view').classList.remove('hidden');
+                document.getElementById('login-subtitle').innerText = `Sign in to connect your James Auth account to ${targetService.name}`;
+                return;
+            }
+
+            const userName = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+            const userAvatar = currentUser.user_metadata?.avatar_url;
+            document.getElementById('user-display-name').innerText = userName;
+            if (userAvatar) {
+                const img = document.getElementById('user-avatar');
+                img.src = userAvatar;
+                img.classList.remove('hidden');
+                document.getElementById('user-icon').classList.add('hidden');
+            }
+
+            const { data: connected } = await supabaseClient.from('user_connections').select('*').eq('user_id', currentUser.id).eq('service_id', targetService.id).maybeSingle();
+            if (connected) {
+                await finalizeAuth(false);
+                return;
+            }
+
+            document.getElementById('loading-view').classList.add('hidden');
+            document.getElementById('request-view').classList.remove('hidden');
+            document.getElementById('app-name').innerText = targetService.name;
+            document.getElementById('app-name-inline').innerText = targetService.name;
+            document.getElementById('app-icon').className = `fas ${targetService.icon_class}`;
+            document.getElementById('app-icon-container').classList.add(`text-${targetService.accent_color || 'blue-600'}`);
+            
+            // Handle privacy policy URL
+            const privacyLink = document.getElementById('privacy-link');
+            if (targetService.privacy_url) {
+                privacyLink.href = targetService.privacy_url;
+                privacyLink.textContent = `${targetService.name} Privacy Policy`;
+            } else {
+                privacyLink.href = '#';
+                privacyLink.textContent = 'Privacy Policy';
+                privacyLink.style.pointerEvents = 'none';
+                privacyLink.style.color = '#94a3b8';
+            }
+
+            const scopeContainer = document.getElementById('scope-list');
+            let hasValidScopes = false;
+            
+            activeScopes.forEach(s => {
+                if (s === 'storedatacloud') {
+                    requiresCloudConsent = true;
+                    document.getElementById('cloud-storage-container').classList.remove('hidden');
+                } else if (scopeMap[s]) {
+                    hasValidScopes = true;
+                    scopeContainer.innerHTML += `<li class="flex items-center text-sm text-slate-600 font-medium"><i class="fas fa-check-circle text-green-500 mr-3"></i> ${scopeMap[s]}</li>`;
+                }
+            });
+
+            // Check if there are any valid scopes (excluding storedatacloud)
+            if (!hasValidScopes && !requiresCloudConsent) {
+                return showError("No valid scopes were provided. Authentication requires at least one valid scope (email, profile, sync, or storedatacloud).");
+            }
+            toggleAuthButton();
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>
