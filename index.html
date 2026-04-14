@@ -283,6 +283,51 @@
         <span id="toast-msg" class="text-sm font-medium"></span>
     </div>
 
+    <!-- Unlink Confirmation Modal -->
+    <div id="unlink-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeUnlinkModal()"></div>
+        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content">
+            <div class="h-3 w-full bg-gradient-to-r from-red-600 to-orange-600"></div>
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-3xl flex items-center justify-center text-white text-3xl mx-auto mb-6 shadow-xl">
+                        <i class="fas fa-link-slash"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Unlink Service</h2>
+                    <p class="text-slate-500 font-medium">Are you sure you want to unlink this service?</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                        <h4 class="font-bold text-red-800 mb-2">Warning</h4>
+                        <p class="text-sm text-red-700 leading-relaxed">
+                            Unlinking will remove your account from this service and revoke all access permissions. You may need to re-authenticate if you want to use this service again.
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
+                            <i id="unlink-modal-icon" class="fas fa-cube text-slate-600"></i>
+                        </div>
+                        <div>
+                            <p id="unlink-modal-service-name" class="font-bold text-slate-900">Service Name</p>
+                            <p class="text-sm text-slate-500">This action cannot be undone</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 mt-8 pt-6 border-t border-slate-100">
+                    <button onclick="confirmUnlink()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-red-500/25 active:scale-[0.98]">
+                        Yes, Unlink Service
+                    </button>
+                    <button onclick="closeUnlinkModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- About Modal -->
     <div id="about-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 about-modal">
         <div class="modal-overlay absolute inset-0" onclick="closeAboutModal()"></div>
@@ -660,19 +705,56 @@
 
         function closeModal() { document.getElementById('service-modal').classList.add('hidden'); }
 
-        async function unlinkService(id) {
-            if (!supabaseClient || !currentUser) return;
-            await supabaseClient.from('user_connections').delete().eq('user_id', currentUser.id).eq('service_id', id);
-            connectedIds = connectedIds.filter(cid => cid !== id);
+        let serviceToUnlink = null;
+
+        function showUnlinkModal(serviceId, serviceName, iconClass) {
+            serviceToUnlink = serviceId;
+            
+            // Update modal content
+            document.getElementById('unlink-modal-service-name').textContent = serviceName;
+            const modalIcon = document.getElementById('unlink-modal-icon');
+            modalIcon.className = `fas ${iconClass} text-slate-600`;
+            
+            // Show modal
+            document.getElementById('unlink-modal').classList.remove('hidden');
+        }
+
+        function closeUnlinkModal() {
+            document.getElementById('unlink-modal').classList.add('hidden');
+            serviceToUnlink = null;
+        }
+
+        async function confirmUnlink() {
+            if (!serviceToUnlink || !supabaseClient || !currentUser) return;
+            
+            // Perform unlink
+            await supabaseClient.from('user_connections').delete().eq('user_id', currentUser.id).eq('service_id', serviceToUnlink);
+            connectedIds = connectedIds.filter(cid => cid !== serviceToUnlink);
             
             // Clear docs authentication if authdocs service was unlinked
-            if (id === 'authdocs') {
+            if (serviceToUnlink === 'authdocs') {
                 localStorage.removeItem('docs_authenticated');
                 localStorage.removeItem('docs_auth_expiry');
                 localStorage.removeItem('docs_user');
             }
             
+            // Close modal and update UI
+            closeUnlinkModal();
             renderGrids();
+            
+            // Show success toast
+            showToast('Service unlinked successfully', 'success');
+        }
+
+        async function unlinkService(id) {
+            if (!supabaseClient || !currentUser) return;
+            
+            // Find service details
+            const service = allServices.find(s => s.id === id);
+            if (!service) return;
+            
+            // Show confirmation modal
+            showUnlinkModal(id, service.name, service.icon_class);
         }
 
     </script>
