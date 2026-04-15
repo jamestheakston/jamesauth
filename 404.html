@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | James Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white min-h-screen p-4">
+    <div class="max-w-2xl mt-20">
+        <div class="mb-8">
+            <h1 class="text-6xl font-bold text-gray-900 mb-4">404</h1>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Page Not Found</h2>
+            <p class="text-gray-600 mb-8">
+                The page you're looking for doesn't exist. Let's get you back to safety.
+            </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-12">
+            <a href="index.html" class="inline-flex items-center bg-blue-600 text-white hover:bg-blue-700 font-medium px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-home mr-2"></i> 
+                Go Home
+            </a>
+            
+            <a href="app.html" class="inline-flex items-center border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-rocket mr-2"></i> 
+                Dashboard
+            </a>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="border-t border-gray-200 pt-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Looking for something specific?</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <a href="login.html" class="flex items-center text-gray-600 hover:text-gray-900 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Sign In to Your Account
+                </a>
+                <a href="docs.html" class="flex items-center text-gray-600 hover:text-gray-900 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-book mr-2"></i>
+                    Browse Documentation
+                </a>
+                <a href="privacy.html" class="flex items-center text-gray-600 hover:text-gray-900 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    Privacy Policy
+                </a>
+                <a href="https://github.com/jamestheakston/james-auth" target="_blank" class="flex items-center text-gray-600 hover:text-gray-900 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fab fa-github mr-2"></i>
+                    GitHub Repository
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

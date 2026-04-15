@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Auth | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .service-card:hover { transform: translateY(-4px); }
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .service-card {
+                padding: 1rem;
+            }
+            
+            .modal-content {
+                margin: 1rem;
+                max-width: calc(100vw - 2rem);
+            }
+            
+            .profile-dropdown {
+                width: calc(100vw - 2rem);
+                right: 1rem;
+            }
+        }
+        
+        /* Dropdown animations */
+        .profile-dropdown {
+            transform-origin: top right;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .profile-dropdown.hidden {
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+            pointer-events: none;
+        }
+        
+        .profile-dropdown:not(.hidden) {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+        
+        /* Modal animations */
+        .modal-content {
+            transform-origin: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .about-modal.hidden .modal-overlay {
+            opacity: 0;
+        }
+        
+        .about-modal.hidden .modal-content {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        
+        .about-modal:not(.hidden) .modal-overlay {
+            opacity: 1;
+        }
+        
+        .about-modal:not(.hidden) .modal-content {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        /* Touch-friendly interactions */
+        @media (hover: none) {
+            .service-card:hover {
+                transform: none;
+            }
+            
+            .service-card:active {
+                transform: scale(0.98);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+
+    <nav class="glass border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="bg-blue-600 text-white p-2 sm:p-2.5 rounded-lg">
+                <i class="fas fa-id-card-clip text-lg sm:text-xl"></i>
+            </div>
+            <span class="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
+        </div>
+        <div id="user-nav" class="hidden relative">
+            <button onclick="toggleProfileDropdown()" class="group relative">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-200 ring-2 ring-slate-100 group-hover:ring-blue-100 transition-all">
+                    <img id="nav-avatar" class="hidden w-full h-full object-cover">
+                    <div id="nav-avatar-icon" class="w-full h-full flex items-center justify-center text-slate-400">
+                        <i class="fas fa-user text-sm sm:text-base"></i>
+                    </div>
+                </div>
+            </button>
+            
+            <!-- Profile Dropdown -->
+            <div id="profile-dropdown" class="hidden absolute right-0 top-full mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 profile-dropdown">
+                <div class="p-4 border-b border-slate-100">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-full border-2 border-white shadow-sm overflow-hidden bg-slate-200 flex-shrink-0">
+                            <img id="dropdown-avatar" class="hidden w-full h-full object-cover">
+                            <div id="dropdown-avatar-icon" class="w-full h-full flex items-center justify-center text-slate-400">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <p id="dropdown-display-name" class="text-sm font-bold text-slate-900 truncate"></p>
+                            <p id="dropdown-email" class="text-xs text-slate-500 truncate"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="py-2">
+                    <button onclick="toggleSettings(); closeProfileDropdown();" class="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                        <i class="fas fa-user-gear w-5 text-blue-600 mr-3"></i>
+                        Account Settings
+                    </button>
+                    <a href="docs.html" class="block px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-5 h-5 text-blue-600 mr-3" fill="currentColor"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M192 64C156.7 64 128 92.7 128 128L128 512C128 547.3 156.7 576 192 576L448 576C483.3 576 512 547.3 512 512L512 234.5C512 217.5 505.3 201.2 493.3 189.2L386.7 82.7C374.7 70.7 358.5 64 341.5 64L192 64zM453.5 240L360 240C346.7 240 336 229.3 336 216L336 122.5L453.5 240z"/></svg>
+                        Documentation
+                    </a>
+                    <button onclick="showAbout(); closeProfileDropdown();" class="w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center">
+                        <i class="fas fa-info-circle w-5 text-blue-600 mr-3"></i>
+                        About
+                    </button>
+                    <div class="border-t border-slate-100 my-2"></div>
+                    <button onclick="signOut()" class="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center">
+                        <i class="fas fa-sign-out-alt w-5 mr-3"></i>
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto p-6 lg:py-12 flex-grow w-full">
+        
+        <div id="auth-view" class="hidden max-w-md mx-auto mt-8">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center">
+                <div class="mb-8">
+                    <i class="fas fa-lock text-6xl text-slate-300 mb-4"></i>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Authentication Required</h2>
+                    <p class="text-slate-500 mb-6">Please sign in to access your dashboard</p>
+                    <a href="login.html" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="dashboard-view">
+            <header class="mb-8 sm:mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
+                    <p class="text-slate-500 mt-1 font-medium text-sm sm:text-base">Manage your active and available services.</p>
+                </div>
+                <button onclick="toggleSettings()" class="bg-white border border-slate-200 text-slate-700 font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-sm hover:bg-slate-50 transition-all flex items-center shadow-sm">
+                    <i class="fas fa-user-gear mr-2 text-blue-600"></i> Edit Profile
+                </button>
+            </header>
+
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 sm:mb-6 flex items-center">
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> Connected Services
+            </h3>
+            <div id="connected-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12"></div>
+
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 sm:mb-6 flex items-center">
+                <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> Discovery Store
+            </h3>
+            <div id="available-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12"></div>
+        </div>
+
+        <div id="settings-view" class="hidden max-w-2xl mx-auto">
+            <button onclick="toggleSettings()" class="mb-8 text-sm font-bold text-blue-600 flex items-center hover:translate-x-[-4px] transition-transform">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </button>
+            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
+                <div class="p-8 border-b border-slate-100 bg-slate-50/50">
+                    <h2 class="text-2xl font-black text-slate-900">Profile Settings</h2>
+                    <p class="text-slate-500 text-sm font-medium">Update your identity across the James Auth network.</p>
+                </div>
+                <div class="p-8 space-y-8">
+                    <div class="flex items-center space-x-6">
+                        <div class="w-24 h-24 rounded-3xl bg-slate-100 border-2 border-slate-200 overflow-hidden shadow-inner flex items-center justify-center">
+                            <img id="settings-avatar-preview" class="hidden w-full h-full object-cover">
+                            <i id="settings-avatar-icon" class="fas fa-user text-3xl text-slate-300"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-900">Avatar Preview</h4>
+                            <p class="text-xs text-slate-500">How you appear to other services.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Display Name</label>
+                            <input type="text" id="input-name" placeholder="Enter your name" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Avatar URL</label>
+                            <input type="text" id="input-avatar" oninput="previewAvatar(this.value)" placeholder="https://example.com/photo.jpg" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium">
+                        </div>
+                    </div>
+                    <button id="save-settings-btn" onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98] flex items-center justify-center">
+                        <i class="fas fa-check-circle mr-2"></i> Save Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="service-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+        <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-xl relative z-10 overflow-hidden shadow-2xl transition-all transform m-4 sm:m-0">
+            <div id="modal-accent" class="h-3 w-full"></div>
+            <div class="p-6 sm:p-8">
+                <div class="flex justify-between items-start mb-6 sm:mb-8">
+                    <div class="flex items-center space-x-3 sm:space-x-5 flex-grow min-w-0">
+                        <div id="modal-icon-container" class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center text-2xl sm:text-3xl shadow-inner border border-slate-100 flex-shrink-0">
+                            <i id="modal-icon" class="fas"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h2 id="modal-title" class="text-2xl sm:text-3xl font-black text-slate-900 truncate">Title</h2>
+                            <p class="text-blue-600 font-bold text-sm flex items-center">James Theakston</p>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 ml-2"><i class="fas fa-times text-lg sm:text-xl"></i></button>
+                </div>
+                <div class="space-y-6">
+                    <div id="beta-notice" class="hidden bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="bg-yellow-500 text-white px-3 py-1 rounded-lg mb-3">
+                                <span class="text-xs font-bold">BETA</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-yellow-800 mb-1">This service is in beta</h4>
+                                <p class="text-sm text-yellow-700">This service is still in development and may contain bugs or experience issues. Features may change or be temporarily unavailable.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">About</h4>
+                        <p id="modal-description" class="text-slate-600 leading-relaxed"></p>
+                    </div>
+                    
+                    <div id="developer-note" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-slate-600 text-white p-2 rounded-lg flex-shrink-0">
+                                <i class="fas fa-sticky-note text-sm"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="font-bold text-slate-800 mb-1">Note from Developer</h4>
+                                <p id="modal-developer-note" class="text-sm text-slate-600 leading-relaxed"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="chrome-extension-notice" class="hidden bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-blue-600 text-white p-2 rounded-lg flex-shrink-0">
+                                <i class="fas fa-chrome text-lg"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <h5 class="text-sm font-bold text-blue-900 mb-1">Chrome Extension Required</h5>
+                                <p class="text-blue-700 text-xs leading-relaxed mb-3">
+                                    To use ClassCharts Improver, you must install the Chrome extension.
+                                </p>
+                                <a href="https://chromewebstore.google.com/detail/classcharts-improver/kalmdpfngeebamgaeegkieojhbkbghoe" target="_blank" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-all">
+                                    <i class="fas fa-download mr-1.5"></i> Get Chrome Extension
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Status</div>
+                            <div id="modal-status" class="text-sm font-bold text-slate-700">Not Connected</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase mb-1">Developer</div>
+                            <div class="text-sm font-bold text-slate-700">James Theakston</div>
+                        </div>
+                    </div>
+                    <div id="launch-service-container" class="hidden">
+                        <button id="launch-service-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center">
+                            <i class="fas fa-rocket mr-2"></i> Launch Service
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed top-4 right-4 z-[100] translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="flex items-center w-full max-w-xs p-4 bg-white rounded-lg shadow-lg border border-gray-200" role="alert">
+            <i id="toast-icon" class="fas fa-check-circle text-green-600 text-xl"></i>
+            <div id="toast-msg" class="ms-3 text-sm text-gray-700 flex-grow"></div>
+            <button onclick="hideToast()" type="button" class="ms-auto flex items-center justify-center text-gray-600 hover:text-gray-900 bg-transparent border border-transparent hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Unlink Confirmation Modal -->
+    <div id="unlink-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="modal-overlay absolute inset-0" onclick="closeUnlinkModal()"></div>
+        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content">
+            <div class="h-3 w-full bg-gradient-to-r from-red-600 to-orange-600"></div>
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-br from-red-600 to-orange-600 rounded-3xl flex items-center justify-center text-white text-3xl mx-auto mb-6 shadow-xl">
+                        <i class="fas fa-link-slash"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Unlink Service</h2>
+                    <p class="text-slate-500 font-medium">Are you sure you want to unlink this service?</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                        <h4 class="font-bold text-red-800 mb-2">Warning</h4>
+                        <p class="text-sm text-red-700 leading-relaxed">
+                            Unlinking will remove your account from this service and revoke all access permissions. You may need to re-authenticate if you want to use this service again.
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
+                            <i id="unlink-modal-icon" class="fas fa-cube text-slate-600"></i>
+                        </div>
+                        <div>
+                            <p id="unlink-modal-service-name" class="font-bold text-slate-900">Service Name</p>
+                            <p class="text-sm text-slate-500">This action cannot be undone</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 mt-8 pt-6 border-t border-slate-100">
+                    <button onclick="confirmUnlink()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-red-500/25 active:scale-[0.98]">
+                        Yes, Unlink Service
+                    </button>
+                    <button onclick="closeUnlinkModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 about-modal">
+        <div class="modal-overlay absolute inset-0" onclick="closeAboutModal()"></div>
+        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content">
+            <div class="h-3 w-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl flex items-center justify-center text-white text-3xl mx-auto mb-6 shadow-xl">
+                        <i class="fas fa-id-card-clip"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">James Auth</h2>
+                    <p class="text-slate-500 font-medium">Version 1.0.0</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">About</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            James Auth is a centralized authentication platform that allows users to authenticate once and access multiple applications seamlessly. Manage your entire workspace with a single identity.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Developer</h3>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-code text-slate-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900">James Theakston</p>
+                                <p class="text-sm text-slate-500">Full Stack Developer</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <div class="text-2xl font-bold text-blue-600">1</div>
+                            <div class="text-xs text-slate-500 font-medium">Identity</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <div class="text-2xl font-bold text-purple-600">Multiple</div>
+                            <div class="text-xs text-slate-500 font-medium">Apps</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl">
+                            <div class="text-2xl font-bold text-green-600">Secure</div>
+                            <div class="text-xs text-slate-500 font-medium">Access</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t border-slate-100">
+                    <button onclick="closeAboutModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98]">
+                        Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for Supabase to be loaded before initializing
+        let supabaseClient;
+        let currentUser = null;
+        
+        function initializeSupabase() {
+            if (typeof supabase !== 'undefined') {
+                const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Initialize the app after Supabase is ready
+                window.onload = async () => {
+                    await loadDashboard();
+                };
+            } else {
+                console.error('Supabase library not loaded');
+                showToast('Error: Supabase library not loaded', true);
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSupabase);
+        } else {
+            initializeSupabase();
+        }
+        let allServices = [];
+        let connectedIds = [];
+        let showingSettings = false;
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msgElement = document.getElementById('toast-msg');
+            
+            msgElement.innerText = msg;
+            
+            // Set icon and color based on type
+            icon.className = 'text-xl';
+            if (type === 'error') {
+                icon.className += ' fas fa-exclamation-circle text-red-600';
+            } else if (type === 'warning') {
+                icon.className += ' fas fa-exclamation-triangle text-yellow-600';
+            } else if (type === 'loading') {
+                icon.className += ' fas fa-spinner fa-spin text-blue-600';
+            } else {
+                icon.className += ' fas fa-check-circle text-green-600';
+            }
+            
+            // Show toast with slide-in animation
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+                toast.classList.add('translate-x-0');
+            }, 10);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-x-0');
+            toast.classList.add('translate-x-full');
+            
+            // Hide after animation completes
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }
+
+        function toggleAuthMode() {
+            const btn = document.getElementById('main-auth-btn');
+            const toggle = document.getElementById('toggle-auth');
+            const isSignUp = btn.innerText === "Sign In";
+            if (isSignUp) {
+                btn.innerText = "Create Account";
+                btn.onclick = signUp;
+                toggle.innerText = "Already have an account? Sign In";
+            } else {
+                btn.innerText = "Sign In";
+                btn.onclick = signIn;
+                toggle.innerText = "Don't have an account? Create one";
+            }
+        }
+
+        async function signUp() {
+            if (!supabaseClient) {
+                showToast('Supabase not initialized', true);
+                return;
+            }
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) return showToast(error.message, true);
+            showToast("Success! Check your email.");
+        }
+
+        async function signIn() {
+            if (!supabaseClient) {
+                showToast('Supabase not initialized', true);
+                return;
+            }
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) return showToast(error.message, true);
+            loadDashboard();
+        }
+
+        async function signOut() {
+            if (!supabaseClient) {
+                window.location.reload();
+                return;
+            }
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+        }
+
+        function toggleSettings() {
+            showingSettings = !showingSettings;
+            document.getElementById('dashboard-view').classList.toggle('hidden', showingSettings);
+            document.getElementById('settings-view').classList.toggle('hidden', !showingSettings);
+            if (showingSettings) {
+                const meta = currentUser.user_metadata || {};
+                document.getElementById('input-name').value = meta.display_name || '';
+                document.getElementById('input-avatar').value = meta.avatar_url || '';
+                previewAvatar(meta.avatar_url);
+            }
+        }
+
+        function previewAvatar(url) {
+            const preview = document.getElementById('settings-avatar-preview');
+            const icon = document.getElementById('settings-avatar-icon');
+            if (url && url.length > 5) {
+                preview.src = url;
+                preview.classList.remove('hidden');
+                icon.classList.add('hidden');
+            } else {
+                preview.classList.add('hidden');
+                icon.classList.remove('hidden');
+            }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('save-settings-btn');
+            const name = document.getElementById('input-name').value;
+            const avatar = document.getElementById('input-avatar').value;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+            if (!supabaseClient) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Save Profile';
+                showToast('Supabase not initialized', true);
+                return;
+            }
+            const { data, error } = await supabaseClient.auth.updateUser({
+                data: { display_name: name, avatar_url: avatar }
+            });
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Save Profile';
+            if (error) return showToast(error.message, true);
+            currentUser = data.user;
+            updateNavUI();
+            showToast("Profile updated!");
+            setTimeout(toggleSettings, 800);
+        }
+
+        function updateNavUI() {
+            const meta = currentUser.user_metadata || {};
+            const displayName = meta.display_name || currentUser.email.split('@')[0];
+            const avatarUrl = meta.avatar_url;
+            
+            // Update main navigation avatar
+            const navAvatar = document.getElementById('nav-avatar');
+            const navIcon = document.getElementById('nav-avatar-icon');
+            if (avatarUrl) {
+                navAvatar.src = avatarUrl;
+                navAvatar.classList.remove('hidden');
+                navIcon.classList.add('hidden');
+            } else {
+                navAvatar.classList.add('hidden');
+                navIcon.classList.remove('hidden');
+            }
+            
+            // Update dropdown profile info
+            document.getElementById('dropdown-display-name').innerText = displayName;
+            document.getElementById('dropdown-email').innerText = currentUser.email;
+            
+            const dropdownAvatar = document.getElementById('dropdown-avatar');
+            const dropdownIcon = document.getElementById('dropdown-avatar-icon');
+            if (avatarUrl) {
+                dropdownAvatar.src = avatarUrl;
+                dropdownAvatar.classList.remove('hidden');
+                dropdownIcon.classList.add('hidden');
+            } else {
+                dropdownAvatar.classList.add('hidden');
+                dropdownIcon.classList.remove('hidden');
+            }
+        }
+
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profile-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        function closeProfileDropdown() {
+            document.getElementById('profile-dropdown').classList.add('hidden');
+        }
+
+        function showAbout() {
+            document.getElementById('about-modal').classList.remove('hidden');
+        }
+
+        function closeAboutModal() {
+            document.getElementById('about-modal').classList.add('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userNav = document.getElementById('user-nav');
+            const dropdown = document.getElementById('profile-dropdown');
+            
+            if (!userNav.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        async function loadDashboard() {
+            if (!supabaseClient) return;
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                // Show authentication required screen
+                document.getElementById('dashboard-view').classList.add('hidden');
+                document.getElementById('auth-view').classList.remove('hidden');
+                document.getElementById('user-nav').classList.add('hidden');
+                return;
+            }
+            currentUser = user;
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('user-nav').classList.remove('hidden');
+            updateNavUI();
+            await fetchServicesAndConnections();
+        }
+
+        async function fetchServicesAndConnections() {
+            if (!supabaseClient || !currentUser) return;
+            const { data: services } = await supabaseClient.from('services').select('*');
+            const { data: connections } = await supabaseClient.from('user_connections').select('service_id').eq('user_id', currentUser.id);
+            allServices = services || [];
+            connectedIds = (connections || []).map(c => c.service_id);
+            
+            // Store connected services in localStorage for docs page to check
+            localStorage.setItem('connected_services', JSON.stringify(connectedIds));
+            
+            renderGrids();
+        }
+
+        function renderGrids() {
+            const connectedGrid = document.getElementById('connected-grid');
+            const availableGrid = document.getElementById('available-grid');
+            const connected = allServices.filter(s => connectedIds.includes(s.id));
+            const available = allServices.filter(s => !connectedIds.includes(s.id));
+            connectedGrid.innerHTML = connected.length === 0 ? `<p class="col-span-full text-slate-400 italic py-4">No apps connected.</p>` : connected.map(s => renderServiceCard(s, true)).join('');
+            availableGrid.innerHTML = available.map(s => renderServiceCard(s, false)).join('');
+        }
+
+        function renderServiceCard(s, isConnected) {
+            return `
+                <div class="service-card bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-5 transition-all">
+                    <div class="w-16 h-14 bg-slate-50 text-${s.accent_color || 'blue-600'} rounded-2xl flex items-center justify-center text-2xl border border-slate-100 shadow-inner flex-shrink-0">
+                        <i class="fas ${s.icon_class}"></i>
+                    </div>
+                    <div class="flex-grow min-w-0 w-full">
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${s.name}</h3>
+                        <p class="text-slate-500 text-xs truncate">${s.description}</p>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        <button onclick="openStorePage('${s.id}')" class="bg-slate-100 text-slate-600 px-3 sm:px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap">Details</button>
+                        ${isConnected ? `<button onclick="unlinkService('${s.id}')" class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-slate-50 rounded-xl hover:bg-red-50"><i class="fas fa-link-slash text-xs sm:text-sm"></i></button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openStorePage(id) {
+            const s = allServices.find(item => item.id === id);
+            const isConnected = connectedIds.includes(id);
+            const modal = document.getElementById('service-modal');
+            const chromeExtensionNotice = document.getElementById('chrome-extension-notice');
+            
+            document.getElementById('modal-title').innerText = s.name;
+            document.getElementById('modal-description').innerText = s.description;
+            
+            // Handle icon - use FontAwesome for all services
+            document.getElementById('modal-icon').className = `fas ${s.icon_class || 'fa-cube'}`;
+            document.getElementById('modal-icon').innerHTML = '';
+            
+            document.getElementById('modal-icon-container').className = `w-20 h-20 rounded-3xl flex items-center justify-center text-3xl text-${s.accent_color || 'blue-600'} bg-slate-50`;
+            document.getElementById('modal-status').innerText = isConnected ? "Connected" : "Not Connected";
+            document.getElementById('modal-accent').className = `h-3 w-full bg-${s.accent_color || 'blue-600'}`;
+            
+            // Show Chrome Extension notice for ClassCharts Improver
+            if (s.name.toLowerCase().includes('classcharts')) {
+                chromeExtensionNotice.classList.remove('hidden');
+            } else {
+                chromeExtensionNotice.classList.add('hidden');
+            }
+            
+            // Show Beta notice if is_beta is TRUE
+            const betaNotice = document.getElementById('beta-notice');
+            if (s.is_beta === true) {
+                betaNotice.classList.remove('hidden');
+            } else {
+                betaNotice.classList.add('hidden');
+            }
+            
+            // Show Developer Note if note_from_developer exists
+            const developerNote = document.getElementById('developer-note');
+            const modalDeveloperNote = document.getElementById('modal-developer-note');
+            if (s.note_from_developer && s.note_from_developer.trim() !== '') {
+                developerNote.classList.remove('hidden');
+                modalDeveloperNote.innerText = s.note_from_developer;
+            } else {
+                developerNote.classList.add('hidden');
+            }
+            
+            // Show Launch Service button if launch_url exists
+            const launchContainer = document.getElementById('launch-service-container');
+            const launchBtn = document.getElementById('launch-service-btn');
+            if (s.launch_url) {
+                launchContainer.classList.remove('hidden');
+                launchBtn.onclick = () => window.open(s.launch_url, '_blank');
+            } else {
+                launchContainer.classList.add('hidden');
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('service-modal').classList.add('hidden'); }
+
+        let serviceToUnlink = null;
+
+        function showUnlinkModal(serviceId, serviceName, iconClass) {
+            serviceToUnlink = serviceId;
+            
+            // Update modal content
+            document.getElementById('unlink-modal-service-name').textContent = serviceName;
+            const modalIcon = document.getElementById('unlink-modal-icon');
+            modalIcon.className = `fas ${iconClass} text-slate-600`;
+            
+            // Show modal
+            document.getElementById('unlink-modal').classList.remove('hidden');
+        }
+
+        function closeUnlinkModal() {
+            document.getElementById('unlink-modal').classList.add('hidden');
+            serviceToUnlink = null;
+        }
+
+        async function confirmUnlink() {
+            if (!serviceToUnlink || !supabaseClient || !currentUser) return;
+            
+            // Perform unlink
+            await supabaseClient.from('user_connections').delete().eq('user_id', currentUser.id).eq('service_id', serviceToUnlink);
+            connectedIds = connectedIds.filter(cid => cid !== serviceToUnlink);
+            
+            // Clear docs authentication if authdocs service was unlinked
+            if (serviceToUnlink === 'authdocs') {
+                localStorage.removeItem('docs_authenticated');
+                localStorage.removeItem('docs_auth_expiry');
+                localStorage.removeItem('docs_user');
+            }
+            
+            // Close modal and update UI
+            closeUnlinkModal();
+            renderGrids();
+            
+            // Show success toast
+            showToast('Service unlinked successfully', 'success');
+        }
+
+        async function unlinkService(id) {
+            if (!supabaseClient || !currentUser) return;
+            
+            // Find service details
+            const service = allServices.find(s => s.id === id);
+            if (!service) return;
+            
+            // Show confirmation modal
+            showUnlinkModal(id, service.name, service.icon_class);
+        }
+
+    </script>
+</body>
+</html>
