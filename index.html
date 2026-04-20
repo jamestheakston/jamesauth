@@ -304,5 +304,20 @@
             </div>
         </div>
     </footer>
+
+    <script>
+        const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function checkAuthStatus() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session?.user) {
+                window.location.href = 'app.html';
+            }
+        }
+
+        window.onload = checkAuthStatus;
+    </script>
 </body>
 </html>
