@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access blocked: Invalid Scope</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .header-font {
+            font-family: 'Inter', sans-serif;
+        }
+        .error-container {
+            max-width: 1040px;
+            width: 95%;
+        }
+        .card-shadow {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pt-12 md:pt-24 px-4">
+    <div class="error-container bg-white rounded-2xl card-shadow overflow-hidden">
+        <div class="px-8 py-4 border-b border-gray-200 flex items-center gap-3">
+            <div class="text-blue-600 flex items-center gap-2">
+                <i class="fas fa-id-card-clip text-xl"></i>
+                <span class="text-gray-700 font-medium text-lg header-font">James Auth</span>
+            </div>
+        </div>
+
+        <div class="p-8 md:p-12 flex flex-col md:flex-row gap-12">
+            <div class="flex-1">
+                <h1 class="text-[44px] leading-[52px] text-gray-900 mb-8 header-font font-semibold tracking-tight">
+                    Invalid scope requested
+                </h1>
+                
+                <p class="text-lg text-gray-700 mb-4">
+                    The app is asking for information that James Auth doesn't provide.
+                </p>
+                <p class="text-gray-600">
+                    A requested permission scope is not recognized or is not available for this application.
+                </p>
+
+                <div class="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-lg inline-flex items-center gap-3">
+                    <i class="fas fa-triangle-exclamation text-amber-600"></i>
+                    <span class="text-sm text-amber-800 font-medium">Invalid scope: <code id="scopeName" class="bg-amber-100 px-1 rounded font-mono">unknown</code></span>
+                </div>
+
+                <div class="mt-8">
+                    <button onclick="window.history.back()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors">
+                        Go back
+                    </button>
+                </div>
+            </div>
+
+            <div class="md:w-1/3 text-gray-700 space-y-4">
+                <p class="text-sm leading-relaxed text-gray-500">
+                    Applications must only request scopes that are registered and supported by James Auth.
+                </p>
+                <p class="text-sm">
+                    If you are the developer, please refer to the <a href="docs.html" class="text-blue-600 hover:underline font-medium">documentation</a>.
+                </p>
+                <p class="text-sm font-mono text-gray-400 pt-4">
+                    Error 400: invalid_scope
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="error-container mt-6 flex justify-end text-xs text-gray-600 px-2">
+        <div class="flex gap-6">
+            <a href="docs.html" class="hover:underline">Help</a>
+            <a href="/privacy" class="hover:underline">Privacy</a>
+        </div>
+    </div>
+
+    <footer class="mt-auto py-8 text-center text-gray-400 text-xs">
+        © 2026 James Auth. Built by James Theakston.
+    </footer>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const invalidScope = urlParams.get('scopesinvalid');
+        if (invalidScope) {
+            document.getElementById('scopeName').textContent = invalidScope;
+        }
+    </script>
+</body>
+</html>
