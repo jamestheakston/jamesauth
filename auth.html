@@ -134,7 +134,7 @@
         function redirectToNoParameters(scopesInvalid = null) {
             let url = '/oauth/noparameter.html';
             if (scopesInvalid) {
-                url += '?scopesinvalid=' + encodeURIComponent(scopesInvalid);
+                url = '/oauth/noscope?scopesinvalid=' + encodeURIComponent(scopesInvalid);
             }
             window.location.href = url;
         }
