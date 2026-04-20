@@ -128,11 +128,19 @@
         }
 
         function showError(msg) {
-            document.getElementById('loading-view').classList.add('hidden');
-            document.getElementById('auth-view').classList.add('hidden');
-            document.getElementById('request-view').classList.add('hidden');
-            document.getElementById('error-view').classList.remove('hidden');
-            document.getElementById('error-msg').innerText = msg;
+            // This function is no longer used - we redirect instead
+        }
+
+        function redirectToNoParameters(scopesInvalid = null) {
+            let url = '/oauth/noparameter.html';
+            if (scopesInvalid) {
+                url += '?scopesinvalid=' + encodeURIComponent(scopesInvalid);
+            }
+            window.location.href = url;
+        }
+
+        function redirectToNotFound() {
+            window.location.href = '/oauth/notfound.html';
         }
 
         function toggleAuthButton() {
@@ -205,14 +213,19 @@
             const appShortName = params.get('app');
             const rawScopes = params.get('scopes');
 
-            if (!appShortName) return showError("Application identifier was not provided.");
-            if (!rawScopes) return showError("No scopes were provided. Authentication requires at least one scope.");
+            // Check if there are no parameters
+            if (!appShortName && !rawScopes) {
+                return redirectToNoParameters();
+            }
+
+            if (!appShortName) return redirectToNoParameters();
+            if (!rawScopes) return redirectToNoParameters();
 
             const { data: { session } } = await supabaseClient.auth.getSession();
             currentUser = session?.user;
 
             const { data: service } = await supabaseClient.from('services').select('*').eq('short_name', appShortName).maybeSingle();
-            if (!service) return showError(`The application "${appShortName}" is not registered on this platform.`);
+            if (!service) return redirectToNotFound();
             targetService = service;
 
             const scopeMap = { 
@@ -224,7 +237,7 @@
 
             activeScopes = rawScopes.split(',').map(s => s.trim().toLowerCase());
             const invalidScopes = activeScopes.filter(s => !scopeMap[s]);
-            if (invalidScopes.length > 0) return showError(`Invalid scopes requested: ${invalidScopes.join(', ')}`);
+            if (invalidScopes.length > 0) return redirectToNoParameters(invalidScopes.join(','));
 
             if (!currentUser) {
                 document.getElementById('loading-view').classList.add('hidden');
@@ -283,7 +296,7 @@
 
             // Check if there are any valid scopes (excluding storedatacloud)
             if (!hasValidScopes && !requiresCloudConsent) {
-                return showError("No valid scopes were provided. Authentication requires at least one valid scope (email, profile, sync, or storedatacloud).");
+                return redirectToNoParameters();
             }
             toggleAuthButton();
         }
