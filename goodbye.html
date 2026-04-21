@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goodbye | James Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col">
+    <nav class="glass border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i class="fas fa-id-card-clip text-xl"></i>
+            </div>
+            <span class="text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="index.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                <i class="fas fa-home mr-2"></i> Back to Home
+            </a>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-6 lg:py-12 flex-grow w-full flex items-center justify-center">
+        
+        <!-- Logout Success View -->
+        <div id="logout-view" class="hidden max-w-md w-full fade-in">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center">
+                <div class="mb-8">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-3xl mx-auto mb-6 shadow-lg">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Signed Out Successfully</h2>
+                    <p class="text-slate-500 mb-6">You have been safely logged out of your James Auth account.</p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
+                        <div class="flex items-start space-x-3">
+                            <div class="bg-blue-600 text-white p-2 rounded-lg flex-shrink-0">
+                                <i class="fas fa-shield-alt text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-blue-900 mb-1">Security Tip</h4>
+                                <p class="text-sm text-blue-700 leading-relaxed">
+                                    For complete security, we recommend closing all browser windows where James Auth is currently open to fully end your session.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <a href="login.html" class="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Sign In Again
+                    </a>
+                    <a href="index.html" class="w-full inline-flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3 rounded-xl transition-all">
+                        <i class="fas fa-home mr-2"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Account View -->
+        <div id="delete-view" class="hidden max-w-md w-full fade-in">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center">
+                <div class="mb-8">
+                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-3xl mx-auto mb-6 shadow-lg">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Account Deleted</h2>
+                    <p class="text-slate-500 mb-6">Your James Auth account has been permanently deleted. All your data and connections have been removed.</p>
+                </div>
+                
+                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+                    <h4 class="font-bold text-red-800 mb-2">What was deleted:</h4>
+                    <ul class="text-sm text-red-700 text-left space-y-1">
+                        <li>• Your profile information</li>
+                        <li>• All connected services</li>
+                        <li>• Authentication data</li>
+                        <li>• Account preferences</li>
+                    </ul>
+                </div>
+                
+                <div class="space-y-4">
+                    <a href="index.html" class="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all">
+                        <i class="fas fa-home mr-2"></i> Back to Home
+                    </a>
+                    <a href="login.html" class="w-full inline-flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3 rounded-xl transition-all">
+                        <i class="fas fa-user-plus mr-2"></i> Create New Account
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading View -->
+        <div id="loading-view" class="max-w-md w-full">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center">
+                <div class="mb-8">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl mx-auto mb-6 shadow-lg">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Processing...</h2>
+                    <p class="text-slate-500">Please wait while we process your request.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error View -->
+        <div id="error-view" class="hidden max-w-md w-full fade-in">
+            <div class="bg-white p-8 rounded-3xl shadow-xl border border-red-200 text-center">
+                <div class="mb-8">
+                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-3xl mx-auto mb-6 shadow-lg">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-900 mb-2">Something went wrong</h2>
+                    <p class="text-slate-500 mb-6">We encountered an error while processing your request. Please try again.</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <button onclick="window.location.reload()" class="w-full inline-flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition-all">
+                        <i class="fas fa-redo mr-2"></i> Try Again
+                    </a>
+                    <a href="app.html" class="w-full inline-flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3 rounded-xl transition-all">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
+
+        function showView(viewId) {
+            document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        async function processRequest() {
+            const type = urlParams.get('type');
+            
+            // Simulate processing time
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            try {
+                if (type === 'logout') {
+                    showView('logout-view');
+                } else if (type === 'deleteaccount') {
+                    showView('delete-view');
+                } else {
+                    showView('error-view');
+                }
+            } catch (error) {
+                console.error('Error processing request:', error);
+                showView('error-view');
+            }
+        }
+
+        // Initialize page
+        window.onload = () => {
+            if (!type || (type !== 'logout' && type !== 'deleteaccount')) {
+                showView('error-view');
+            } else {
+                processRequest();
+            }
+        };
+    </script>
+</body>
+</html>
