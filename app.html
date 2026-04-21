@@ -23,11 +23,29 @@
             .modal-content {
                 margin: 1rem;
                 max-width: calc(100vw - 2rem);
+                max-height: calc(100vh - 2rem);
+                overflow-y: auto;
             }
             
             .profile-dropdown {
                 width: calc(100vw - 2rem);
                 right: 1rem;
+            }
+            
+            #service-modal {
+                padding: 0;
+            }
+            
+            #service-modal .modal-content {
+                margin: 1rem;
+                max-height: calc(100vh - 2rem);
+                overflow-y: auto;
+            }
+            
+            #unlink-modal .modal-content,
+            #about-modal .modal-content {
+                max-height: calc(100vh - 2rem);
+                overflow-y: auto;
             }
         }
         
@@ -225,7 +243,7 @@
 
     <div id="service-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
-        <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-xl relative z-10 overflow-hidden shadow-2xl transition-all transform m-4 sm:m-0">
+        <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-xl relative z-10 overflow-hidden shadow-2xl transition-all transform m-4 sm:m-0 max-h-[90vh] overflow-y-auto">
             <div id="modal-accent" class="h-3 w-full"></div>
             <div class="p-6 sm:p-8">
                 <div class="flex justify-between items-start mb-6 sm:mb-8">
@@ -235,7 +253,10 @@
                         </div>
                         <div class="min-w-0">
                             <h2 id="modal-title" class="text-2xl sm:text-3xl font-black text-slate-900 truncate">Title</h2>
-                            <p class="text-blue-600 font-bold text-sm flex items-center">James Theakston</p>
+                            <p class="text-blue-600 font-bold text-sm flex items-center">
+                                James Theakston
+                                <img src="badge.png" alt="Verified" class="ml-2 w-4 h-4 cursor-pointer hover:opacity-80 transition-opacity" onclick="window.location.href='/users/jamestheakston.html'" />
+                            </p>
                         </div>
                     </div>
                     <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 ml-2"><i class="fas fa-times text-lg sm:text-xl"></i></button>
@@ -273,7 +294,9 @@
                     <div id="chrome-extension-notice" class="hidden bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
                         <div class="flex items-start space-x-3">
                             <div class="bg-blue-600 text-white p-2 rounded-lg flex-shrink-0">
-                                <i class="fas fa-chrome text-lg"></i>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.84 5.18-4.68c.223-.198-.054-.308-.346-.11l-6.4 4.02-2.76-.918c-.6-.187-.612-.6.125-.89l10.782-4.156c.5-.16.94.12.78.88z"/>
+                                </svg>
                             </div>
                             <div class="flex-grow">
                                 <h5 class="text-sm font-bold text-blue-900 mb-1">Chrome Extension Required</h5>
@@ -320,7 +343,7 @@
     <!-- Unlink Confirmation Modal -->
     <div id="unlink-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="modal-overlay absolute inset-0" onclick="closeUnlinkModal()"></div>
-        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content max-h-[90vh] overflow-y-auto">
             <div class="h-3 w-full bg-gradient-to-r from-red-600 to-orange-600"></div>
             <div class="p-8">
                 <div class="text-center mb-8">
@@ -365,7 +388,7 @@
     <!-- About Modal -->
     <div id="about-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 about-modal">
         <div class="modal-overlay absolute inset-0" onclick="closeAboutModal()"></div>
-        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 overflow-hidden shadow-2xl transition-all transform modal-content max-h-[90vh] overflow-y-auto">
             <div class="h-3 w-full bg-gradient-to-r from-blue-600 to-purple-600"></div>
             <div class="p-8">
                 <div class="text-center mb-8">
