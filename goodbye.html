@@ -66,38 +66,7 @@
             </div>
         </div>
 
-        <!-- Delete Account View -->
-        <div id="delete-view" class="hidden max-w-md w-full fade-in">
-            <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center">
-                <div class="mb-8">
-                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-3xl mx-auto mb-6 shadow-lg">
-                        <i class="fas fa-user-times"></i>
-                    </div>
-                    <h2 class="text-3xl font-black text-slate-900 mb-2">Account Deleted</h2>
-                    <p class="text-slate-500 mb-6">Your James Auth account has been permanently deleted. All your data and connections have been removed.</p>
-                </div>
-                
-                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
-                    <h4 class="font-bold text-red-800 mb-2">What was deleted:</h4>
-                    <ul class="text-sm text-red-700 text-left space-y-1">
-                        <li>• Your profile information</li>
-                        <li>• All connected services</li>
-                        <li>• Authentication data</li>
-                        <li>• Account preferences</li>
-                    </ul>
-                </div>
-                
-                <div class="space-y-4">
-                    <a href="index.html" class="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all">
-                        <i class="fas fa-home mr-2"></i> Back to Home
-                    </a>
-                    <a href="login.html" class="w-full inline-flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3 rounded-xl transition-all">
-                        <i class="fas fa-user-plus mr-2"></i> Create New Account
-                    </a>
-                </div>
-            </div>
-        </div>
-
+        
         <!-- Loading View -->
         <div id="loading-view" class="max-w-md w-full">
             <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center">
@@ -163,14 +132,10 @@
 
         // Initialize page
         window.onload = () => {
-            if (!type || (type !== 'logout' && type !== 'deleteaccount')) {
+            if (!type || type !== 'logout') {
                 showView('error-view');
             } else {
-                if (type === 'logout') {
-                    showView('logout-view');
-                } else if (type === 'deleteaccount') {
-                    showView('delete-view');
-                }
+                showView('logout-view');
             }
         };
     </script>
