@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Theakston | James Auth Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .verified-badge { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .social-link:hover { transform: scale(1.1); }
+        .tooltip {
+            position: absolute;
+            background: #1f2937;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-4px);
+        }
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: #1f2937;
+        }
+        .social-icon {
+            position: relative;
+        }
+        .social-icon:hover .tooltip {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="glass border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <a href="../index.html" class="flex items-center space-x-2">
+                <div class="bg-blue-600 text-white p-2 sm:p-2.5 rounded-lg">
+                    <i class="fas fa-id-card-clip text-lg sm:text-xl"></i>
+                </div>
+                <span class="text-lg sm:text-xl font-bold text-slate-800 tracking-tight">James Auth</span>
+            </a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="../app.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center">
+                <i class="fas fa-dashboard mr-2"></i> Dashboard
+            </a>
+            <a href="../login.html" class="text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-all flex items-center shadow-lg shadow-blue-500/25">
+                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+            </a>
+        </div>
+    </nav>
+
+    <!-- Profile Header -->
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 opacity-10"></div>
+        <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+            <div class="text-center">
+                <div class="relative inline-block mb-8">
+                    <div class="w-32 h-32 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-5xl mx-auto shadow-2xl border-4 border-white">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-center mb-6">
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900">
+                        James Theakston
+                        <img src="../badge.png" alt="Verified" class="w-6 h-6 ml-3 inline-block" />
+                    </h1>
+                </div>
+                
+                <p class="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed mb-6">
+                    Full Stack Developer | Authentication Specialist | Creator of James Auth Platform
+                </p>
+                
+                <div class="flex items-center justify-center space-x-4 mb-8">
+                    <a href="https://github.com/jamestheakston" target="_blank" class="social-icon bg-slate-900 text-white p-3 rounded-lg hover:bg-slate-800 transition-all">
+                        <i class="fab fa-github text-xl"></i>
+                        <span class="tooltip">Verified</span>
+                    </a>
+                    <a href="https://youtube.com/@gamingwithrandomgaming" target="_blank" class="social-icon bg-red-600 text-white p-3 rounded-lg hover:bg-red-700 transition-all">
+                        <i class="fab fa-youtube text-xl"></i>
+                        <span class="tooltip">Verified</span>
+                    </a>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-4 mb-12">
+                    <a href="https://jamestheakston.pages.dev" target="_blank" class="social-link bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg flex items-center">
+                        <i class="fas fa-envelope mr-2"></i> Contact
+                    </a>
+                    <a href="../app.html" class="social-link bg-white text-slate-900 border-2 border-slate-200 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all shadow-lg flex items-center">
+                        <i class="fas fa-rocket mr-2"></i> View Apps
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- Featured Apps Section -->
+    <section class="py-16 bg-slate-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 text-center mb-12">
+                Featured Applications
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-all">
+                    <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center text-2xl text-blue-600 mb-4">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">ClassCharts Improver</h3>
+                    <p class="text-slate-600 mb-4">Enhance your ClassCharts experience with powerful features and improvements.</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Popular</span>
+                        <a href="../app.html" class="text-blue-600 hover:text-blue-700 font-bold text-sm">View →</a>
+                    </div>
+                </div>
+                
+                                
+                <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-all">
+                    <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center text-2xl text-purple-600 mb-4">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">More Apps</h3>
+                    <p class="text-slate-600 mb-4">Discover more applications in the James Auth ecosystem.</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">Coming Soon</span>
+                        <a href="../app.html" class="text-blue-600 hover:text-blue-700 font-bold text-sm">Explore →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="bg-blue-600 text-white p-2 rounded-lg">
+                            <i class="fas fa-id-card-clip text-xl"></i>
+                        </div>
+                        <span class="text-xl font-bold">James Auth</span>
+                    </div>
+                    <p class="text-slate-400 mb-4 max-w-md">
+                        Single sign-on for all applications. One secure login gives you instant access to your entire workspace.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="https://github.com/jamestheakston/james-auth" target="_blank" class="text-slate-400 hover:text-white transition-colors">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">Platform</h4>
+                    <ul class="space-y-2">
+                        <li><a href="../app.html" class="text-slate-400 hover:text-white transition-colors">Dashboard</a></li>
+                        <li><a href="../docs.html" class="text-slate-400 hover:text-white transition-colors">Documentation</a></li>
+                        <li><a href="../testauth.html" class="text-slate-400 hover:text-white transition-colors">Test Auth</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">Account</h4>
+                    <ul class="space-y-2">
+                        <li><a href="../login.html" class="text-slate-400 hover:text-white transition-colors">Sign In</a></li>
+                        <li><a href="../privacy.html" class="text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-800 mt-8 pt-8 text-center">
+                <p class="text-slate-400">
+                    © 2026 James Auth. Built with ❤️ by James Theakston. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Add smooth scrolling and interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate stats on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '0';
+                        entry.target.style.transform = 'translateY(20px)';
+                        setTimeout(() => {
+                            entry.target.style.transition = 'all 0.6s ease-out';
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }, 100);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.stat-card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
