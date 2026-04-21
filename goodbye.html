@@ -147,9 +147,6 @@
         async function processRequest() {
             const type = urlParams.get('type');
             
-            // Simulate processing time
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
             try {
                 if (type === 'logout') {
                     showView('logout-view');
@@ -169,7 +166,11 @@
             if (!type || (type !== 'logout' && type !== 'deleteaccount')) {
                 showView('error-view');
             } else {
-                processRequest();
+                if (type === 'logout') {
+                    showView('logout-view');
+                } else if (type === 'deleteaccount') {
+                    showView('delete-view');
+                }
             }
         };
     </script>
