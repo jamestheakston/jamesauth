@@ -14,7 +14,6 @@
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
-
     <nav class="glass border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
         <div class="flex items-center space-x-2">
             <div class="bg-blue-600 text-white p-2 rounded-lg">
@@ -42,7 +41,6 @@
     </div>
 
     <main class="max-w-5xl mx-auto p-6 lg:py-12 flex-grow w-full flex items-center justify-center">
-        
         <div class="max-w-md mx-auto w-full">
             <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
                 <div id="login-container">
@@ -50,28 +48,28 @@
                         <h2 id="auth-title" class="text-3xl font-extrabold text-slate-900 mb-2">Welcome Back</h2>
                         <p id="auth-subtitle" class="text-sm text-slate-500">Sign in to your James Auth account</p>
                     </div>
-                    
+
                     <div class="space-y-5">
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
                             <input type="email" id="email" placeholder="name@example.com" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
                         </div>
-                        
+
                         <div class="space-y-1.5">
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Password</label>
                             <input type="password" id="password" placeholder="•••••••••" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
                         </div>
-                        
+
                         <div class="text-right">
                             <a href="resetpassword.html" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
                                 Forgot Password?
                             </a>
                         </div>
-                        
+
                         <button id="main-auth-btn" onclick="signIn()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98] flex items-center justify-center mt-2">
                             Sign In
                         </button>
-                        
+
                         <div class="text-center pt-2">
                             <button id="toggle-auth" onclick="toggleAuthMode()" class="text-sm font-bold text-blue-600 hover:text-blue-700">
                                 Don't have an account? Create one
@@ -90,7 +88,6 @@
                 </div>
             </div>
         </div>
-
     </main>
 
     <script>
@@ -98,13 +95,13 @@
         const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Show Toast Notification
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
             const msgElement = document.getElementById('toast-msg');
-            
             msgElement.innerText = msg;
-            
+
             // Set icon and color based on type
             icon.className = 'text-xl';
             if (type === 'error') {
@@ -116,31 +113,32 @@
             } else {
                 icon.className += ' fas fa-check-circle text-green-600';
             }
-            
+
             // Show toast with slide-in animation
             toast.classList.remove('hidden');
             setTimeout(() => {
                 toast.classList.remove('translate-x-full');
                 toast.classList.add('translate-x-0');
             }, 10);
-            
+
             // Auto-hide after 5 seconds
             setTimeout(() => {
                 hideToast();
             }, 5000);
         }
 
+        // Hide Toast Notification
         function hideToast() {
             const toast = document.getElementById('toast');
             toast.classList.remove('translate-x-0');
             toast.classList.add('translate-x-full');
-            
-            // Hide after animation completes
+
             setTimeout(() => {
                 toast.classList.add('hidden');
             }, 300);
         }
 
+        // Toggle Auth Mode
         function toggleAuthMode() {
             const btn = document.getElementById('main-auth-btn');
             const toggle = document.getElementById('toggle-auth');
@@ -156,27 +154,60 @@
             }
         }
 
+        // SignUp function
         async function signUp() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const { error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) return showToast(error.message, 'error');
+
+            if (error) {
+                if (error.message.includes('email already exists')) {
+                    showToast("This email is already registered. Please use a different one.", 'error');
+                } else {
+                    showToast(error.message, 'error');
+                }
+                return;
+            }
+
             showToast("Success! Check your email.");
         }
 
+        // SignIn function
         async function signIn() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) return showToast(error.message, 'error');
+
+            if (error) {
+                if (error.message.includes('otp_expired')) {
+                    showToast("Your sign-in link has expired. Please request a new one.", 'error');
+                } else {
+                    showToast(error.message, 'error');
+                }
+                return;
+            }
+
             showToast("Signing in...", 'loading');
             setTimeout(() => {
                 window.location.href = 'app.html';
             }, 1000);
         }
 
-        
-        // Check if user is already authenticated and redirect to dashboard
+        // Password reset function
+        async function resetPassword() {
+            const email = document.getElementById('email').value;
+
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+
+            if (error) {
+                showToast(error.message, 'error');
+            } else {
+                showToast("Password reset email sent! Check your inbox.", 'success');
+            }
+        }
+
+        // Check if user is already authenticated
         window.onload = async () => {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
