@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Server | James Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .hero-gradient { background: radial-gradient(circle at top right, #f8fafc 0%, #ffffff 100%); }
+        .blob { filter: blur(60px); z-index: -1; }
+    </style>
+</head>
+<body class="bg-white text-slate-900 overflow-x-hidden">
+    <nav class="glass-nav border-b border-slate-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i class="fas fa-id-card-clip text-xl"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight">James Auth</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="../beta.html" class="text-sm font-bold text-slate-700 hover:text-blue-600 transition-all">Back to Beta</a>
+            <a href="../app.html" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-blue-200">Dashboard</a>
+        </div>
+    </nav>
+
+    <section class="hero-gradient pt-24 pb-32 px-6 relative">
+        <div class="absolute top-20 right-[-10%] w-96 h-96 bg-blue-50 rounded-full blob opacity-60"></div>
+        <div class="absolute bottom-10 left-[-5%] w-72 h-72 bg-slate-100 rounded-full blob opacity-40"></div>
+        
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-xs font-bold mb-8">
+                <i class="fas fa-server text-blue-600"></i>
+                <span>OAUTH SERVER</span>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] mb-6 tracking-tight">
+                Supabase OAuth <br><span class="text-blue-600">Server Infrastructure.</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-10 font-medium">
+                Enterprise-grade OAuth server built on Supabase infrastructure for secure, scalable authentication across the James Auth ecosystem.
+            </p>
+        </div>
+    </section>
+
+    <section class="py-24 px-6 max-w-6xl mx-auto">
+        <div class="text-center mb-20">
+            <h2 class="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">INFORMATION</h2>
+            <h3 class="text-3xl md:text-4xl font-black text-slate-900">OAuth Server Details.</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="space-y-8">
+                <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-lg">
+                    <h4 class="text-xl font-bold text-slate-900 mb-4">What is OAuth Server?</h4>
+                    <p class="text-slate-600 leading-relaxed mb-4">
+                        The OAuth Server is a centralized authentication service that allows third-party applications to authenticate users securely using industry-standard OAuth 2.0 protocols.
+                    </p>
+                    <p class="text-slate-600 leading-relaxed">
+                        Built on Supabase's OAuth infrastructure, it provides enterprise-grade security, scalability, and reliability for authentication across the James Auth ecosystem.
+                    </p>
+                </div>
+                
+                <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-lg">
+                    <h4 class="text-xl font-bold text-slate-900 mb-4">Key Features</h4>
+                    <ul class="space-y-3 text-slate-600">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
+                            <span>OAuth 2.0 compliant implementation</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
+                            <span>Enterprise-grade security and encryption</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
+                            <span>Real-time monitoring and analytics</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
+                            <span>Scalable infrastructure</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 mt-1"></i>
+                            <span>Developer-friendly APIs</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="space-y-8">
+                <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 text-white">
+                    <h4 class="text-2xl font-bold mb-4">Technical Specifications</h4>
+                    <ul class="space-y-3 text-blue-50">
+                        <li class="flex items-center">
+                            <i class="fas fa-shield-alt mr-3"></i>
+                            <span>OAuth 2.0 Authorization Code Flow</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-lock mr-3"></i>
+                            <span>PKCE (Proof Key for Code Exchange) Support</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-clock mr-3"></i>
+                            <span>Refresh Token Rotation</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-user-shield mr-3"></i>
+                            <span>Scope-based Access Control</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-chart-line mr-3"></i>
+                            <span>Rate Limiting & DDoS Protection</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-lg">
+                    <h4 class="text-xl font-bold text-slate-900 mb-4">Integration Status</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                            <span class="font-medium text-green-800">Development Environment</span>
+                            <span class="text-green-600 font-bold">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-xl">
+                            <span class="font-medium text-yellow-800">Staging Environment</span>
+                            <span class="text-yellow-600 font-bold">Testing</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <span class="font-medium text-gray-800">Production Environment</span>
+                            <span class="text-gray-600 font-bold">Coming Soon</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 px-6 bg-slate-50">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-6">Get Started with OAuth Server</h2>
+            <p class="text-slate-500 text-lg mb-10">
+                Ready to integrate OAuth authentication into your applications? Join our beta program to get early access.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="../beta.html" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black px-10 py-4 rounded-2xl text-lg shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center">
+                    Back to Beta <i class="fas fa-arrow-left ml-3 text-sm"></i>
+                </a>
+                <a href="../login.html" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-black px-10 py-4 rounded-2xl text-lg transition-all flex items-center justify-center">
+                    Sign In <i class="fas fa-sign-in-alt ml-3 text-sm"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-white border-t border-slate-100 py-16 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center space-x-2">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-id-card-clip"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">James Auth</span>
+            </div>
+            <div class="flex space-x-8 text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                <a href="../index.html" class="hover:text-blue-600 transition-colors">Home</a>
+                <a href="../privacy.html" class="hover:text-blue-600 transition-colors">Privacy</a>
+            </div>
+            <div class="text-xs text-slate-400 uppercase tracking-widest">
+                &copy; 2026 James Theakston
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
