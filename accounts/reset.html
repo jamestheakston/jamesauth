@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password | James Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-white min-h-screen p-4">
+    <div class="max-w-md mt-20">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Reset Password</h1>
+            <p class="text-gray-600 text-sm">Enter your email to receive a password reset link</p>
+        </div>
+        
+        <!-- Issues Alert -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-800">
+                        <strong>We are currently having issues with our reset password service.</strong><br>
+                        For more info and status updates, please visit <a href="https://jamesauth.instatus.com/cmospv4ma004vspjv80pyc58v" target="_blank" class="text-yellow-600 underline hover:text-yellow-700">https://jamesauth.instatus.com/cmospv4ma004vspjv80pyc58v</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Info Alert -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-800">
+                        Please check your trash and spam folders if you don't receive the password reset email within a few minutes.<br>
+                        The email will be sent from <strong>James Auth</strong> (<code>noreply.jamestheakston@gmail.com</code>).
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <form id="reset-form" class="space-y-6">
+            <div class="space-y-2">
+                <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required
+                    placeholder="Enter your email address"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+            
+            <button 
+                type="submit" 
+                id="reset-btn"
+                class="w-full bg-blue-600 text-white hover:bg-blue-700 font-medium py-3 rounded-lg transition-colors"
+            >
+                Send Reset Link
+            </button>
+        </form>
+        
+        <div class="mt-8">
+            <p class="text-gray-600 text-sm">
+                Remember your password? 
+                <a href="../login.html" class="text-blue-600 hover:text-blue-700 font-medium">
+                    Sign In
+                </a>
+            </p>
+        </div>
+        
+        <div class="mt-6">
+            <a href="index.html" class="text-gray-600 hover:text-gray-900 text-sm">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed top-4 right-4 z-[100] translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="flex items-center w-full max-w-xs p-4 bg-white rounded-lg shadow-lg border border-gray-200" role="alert">
+            <i id="toast-icon" class="fas fa-check-circle text-green-600 text-xl"></i>
+            <div id="toast-msg" class="ms-3 text-sm text-gray-700 flex-grow"></div>
+            <button onclick="hideToast()" type="button" class="ms-auto flex items-center justify-center text-gray-600 hover:text-gray-900 bg-transparent border border-transparent hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient;
+        
+        function initializeSupabase() {
+            if (typeof supabase !== 'undefined') {
+                const SUPABASE_URL = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } else {
+                console.error('Supabase library not loaded');
+                showToast('Error: Supabase library not loaded', true);
+            }
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSupabase);
+        } else {
+            initializeSupabase();
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msgElement = document.getElementById('toast-msg');
+            
+            msgElement.innerText = msg;
+            
+            // Set icon and color based on type
+            icon.className = 'text-xl';
+            if (type === 'error') {
+                icon.className += ' fas fa-exclamation-circle text-red-600';
+            } else if (type === 'warning') {
+                icon.className += ' fas fa-exclamation-triangle text-yellow-600';
+            } else if (type === 'loading') {
+                icon.className += ' fas fa-spinner fa-spin text-blue-600';
+            } else {
+                icon.className += ' fas fa-check-circle text-green-600';
+            }
+            
+            // Show toast with slide-in animation
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+                toast.classList.add('translate-x-0');
+            }, 10);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-x-0');
+            toast.classList.add('translate-x-full');
+            
+            // Hide after animation completes
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }
+
+        // Handle form submission
+        document.getElementById('reset-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!supabaseClient) {
+                showToast('Supabase not initialized', true);
+                return;
+            }
+            
+            const email = document.getElementById('email').value;
+            const resetBtn = document.getElementById('reset-btn');
+            
+            // Show loading state
+            resetBtn.disabled = true;
+            resetBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+            
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/../login.html'
+                });
+                
+                if (error) {
+                    showToast(error.message, true);
+                } else {
+                    showToast('Password reset link sent! Check your email.', false);
+                    // Clear form
+                    document.getElementById('email').value = '';
+                }
+            } catch (error) {
+                showToast('An error occurred. Please try again.', true);
+            } finally {
+                // Reset button state
+                resetBtn.disabled = false;
+                resetBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Send Reset Link';
+            }
+        });
+    </script>
+</body>
+</html>
