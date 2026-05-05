@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Email | James Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .hero-gradient { background: radial-gradient(circle at top right, #f8fafc 0%, #ffffff 100%); }
+        .blob { filter: blur(60px); z-index: -1; }
+        .service-card { transition: all 0.3s ease; }
+        .service-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-white text-slate-900 overflow-x-hidden">
+    <nav class="glass-nav border-b border-slate-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-2">
+            <div class="bg-blue-600 text-white p-2 rounded-lg">
+                <i class="fas fa-id-card-clip text-xl"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight">James Auth</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="../login.html" class="text-sm font-bold text-slate-700 hover:text-blue-600 transition-all">Back to Login</a>
+            <a href="../app.html" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-blue-200">Dashboard</a>
+        </div>
+    </nav>
+
+    <section class="hero-gradient pt-24 pb-32 px-6 relative">
+        <div class="absolute top-20 right-[-10%] w-96 h-96 bg-blue-50 rounded-full blob opacity-60"></div>
+        <div class="absolute bottom-10 left-[-5%] w-72 h-72 bg-slate-100 rounded-full blob opacity-40"></div>
+        
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-flex items-center space-x-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-full text-xs font-bold mb-8">
+                <i class="fas fa-search text-blue-600"></i>
+                <span>EMAIL RECOVERY</span>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] mb-6 tracking-tight">
+                Let's find <br><span class="text-blue-600">your email address.</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-10 font-medium">
+                Tell us about your account to help you recover access to your James Auth account and connected services.
+            </p>
+            
+            <div class="max-w-2xl mx-auto">
+                <form id="find-email-form" class="bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 shadow-2xl">
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <label for="name" class="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
+                            <input 
+                                type="text" 
+                                id="name" 
+                                name="name" 
+                                required
+                                placeholder="Enter your full name"
+                                class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
+                            >
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="services" class="block text-sm font-bold text-slate-700 mb-2">Connected Services (check all that apply)</label>
+                            <div id="services-checkboxes" class="space-y-3">
+                                <!-- Services will be loaded here from Supabase -->
+                                <div class="text-sm text-slate-500 italic">Loading services...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="created-date" class="block text-sm font-bold text-slate-700 mb-2">When did you create your account?</label>
+                            <select 
+                                id="created-date" 
+                                name="created-date" 
+                                required
+                                class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
+                            >
+                                <option value="">Select timeframe</option>
+                                <option value="last-week">Last week</option>
+                                <option value="last-month">Last month</option>
+                                <option value="last-3-months">Last 3 months</option>
+                                <option value="last-6-months">Last 6 months</option>
+                                <option value="last-year">Last year</option>
+                                <option value="more-than-year">More than a year ago</option>
+                                <option value="not-sure">Not sure</option>
+                            </select>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="additional-info" class="block text-sm font-bold text-slate-700 mb-2">Additional Information</label>
+                            <textarea 
+                                id="additional-info" 
+                                name="additional-info" 
+                                rows="4"
+                                placeholder="Any other details that might help us locate your account..."
+                                class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium resize-none"
+                            ></textarea>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        type="submit" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/25 transition-all active:scale-[0.98] flex items-center justify-center"
+                    >
+                        <i class="fas fa-search mr-2"></i>
+                        Find My Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <div id="toast" class="hidden fixed top-4 right-4 z-[100] translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="flex items-center w-full max-w-xs p-4 bg-white rounded-lg shadow-lg border border-gray-200" role="alert">
+            <i id="toast-icon" class="fas fa-check-circle text-green-600 text-xl"></i>
+            <div id="toast-msg" class="ms-3 text-sm text-gray-700 flex-grow"></div>
+            <button onclick="hideToast()" type="button" class="ms-auto flex items-center justify-center text-gray-600 hover:text-gray-900 bg-transparent border border-transparent hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium leading-5 rounded text-sm h-8 w-8 focus:outline-none" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <i class="fas fa-times text-gray-600"></i>
+            </button>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-slate-100 py-16 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex items-center space-x-2">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fas fa-id-card-clip"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">James Auth</span>
+            </div>
+            <div class="flex space-x-8 text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                <a href="../index.html" class="hover:text-blue-600 transition-colors">Home</a>
+                <a href="../privacy.html" class="hover:text-blue-600 transition-colors">Privacy</a>
+            </div>
+            <div class="text-xs text-slate-400 uppercase tracking-widest">
+                &copy; 2026 James Theakston
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const supabaseUrl = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+        const supabaseKey = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Load services from Supabase
+        async function loadServices() {
+            try {
+                const { data: services, error } = await supabaseClient
+                    .from('services')
+                    .select('*')
+                    .order('name');
+                
+                if (error) {
+                    console.error('Error loading services:', error);
+                    document.getElementById('services-checkboxes').innerHTML = '<div class="text-sm text-red-500">Error loading services</div>';
+                    return;
+                }
+                
+                const checkboxesHtml = services.map(service => `
+                    <label class="flex items-center space-x-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                        <input type="checkbox" name="services" value="${service.id}" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        <div class="flex-grow">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-${service.accent_color || 'blue-600'} text-white rounded-lg flex items-center justify-center text-sm">
+                                    <i class="fas ${service.icon_class || 'fa-cube'}"></i>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-slate-900">${service.name}</span>
+                                    <span class="text-xs text-slate-500">${service.description}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                `).join('');
+                
+                document.getElementById('services-checkboxes').innerHTML = checkboxesHtml;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('services-checkboxes').innerHTML = '<div class="text-sm text-red-500">Error loading services</div>';
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msgElement = document.getElementById('toast-msg');
+            
+            msgElement.innerText = msg;
+            
+            // Set icon and color based on type
+            icon.className = 'text-xl';
+            if (type === 'error') {
+                icon.className += ' fas fa-exclamation-circle text-red-600';
+            } else if (type === 'warning') {
+                icon.className += ' fas fa-exclamation-triangle text-yellow-600';
+            } else if (type === 'loading') {
+                icon.className += ' fas fa-spinner fa-spin text-blue-600';
+            } else {
+                icon.className += ' fas fa-check-circle text-green-600';
+            }
+            
+            // Show toast with slide-in animation
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+                toast.classList.add('translate-x-0');
+            }, 10);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                hideToast();
+            }, 5000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-x-0');
+            toast.classList.add('translate-x-full');
+            
+            // Hide after animation completes
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+        }
+
+        // Handle form submission
+        document.getElementById('find-email-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                name: formData.get('name'),
+                services: formData.getAll('services'),
+                createdDate: formData.get('created-date'),
+                additionalInfo: formData.get('additional-info')
+            };
+            
+            // Show loading
+            showToast('Submitting your request...', 'loading');
+            
+            // Here you would normally send this to your backend/email
+            // For now, we'll just show a success message
+            setTimeout(() => {
+                showToast('We\'ll review your request and contact you soon!', 'success');
+                e.target.reset();
+            }, 2000);
+        });
+
+        // Load services when page loads
+        window.onload = loadServices;
+    </script>
+</body>
+</html>
