@@ -784,8 +784,40 @@
             if (!supabaseClient || !currentUser) return;
             const { data: services } = await supabaseClient.from('services').select('*');
             const { data: connections } = await supabaseClient.from('user_connections').select('service_id').eq('user_id', currentUser.id);
-            allServices = services || [];
-            connectedIds = (connections || []).map(c => c.service_id);
+            
+            // Load user-created apps and check if current user has authenticated to them
+            const { data: userAuthentications } = await supabaseClient
+                .from('app_authentications')
+                .select('app_id, authenticated_at')
+                .eq('user_id', currentUser.id)
+                .eq('is_active', true);
+            
+            // Get user apps that the current user has authenticated to
+            const authenticatedUserAppIds = (userAuthentications || []).map(auth => auth.app_id);
+            const { data: userApps } = await supabaseClient
+                .from('user_apps')
+                .select('*')
+                .eq('is_active', true)
+                .in('app_id', authenticatedUserAppIds);
+            
+            // Combine regular services and user apps
+            allServices = [
+                ...(services || []),
+                ...(userApps || []).map(app => ({
+                    ...app,
+                    id: app.app_id, // Use app_id as id for consistency
+                    name: app.name,
+                    description: `User-created OAuth application: ${app.name}`,
+                    icon_class: 'fa-cube',
+                    accent_color: 'purple-600',
+                    is_user_app: true
+                }))
+            ];
+            
+            connectedIds = [
+                ...(connections || []).map(c => c.service_id),
+                ...authenticatedUserAppIds
+            ];
             
             // Load authenticated users for each app
             await loadAuthenticatedUsers();
@@ -851,17 +883,23 @@
         }
 
         function renderServiceCard(s, isConnected) {
+            const isUserApp = s.is_user_app || false;
+            
             return `
                 <div class="service-card bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-5 transition-all">
                     <div class="w-16 h-14 bg-slate-50 text-${s.accent_color || 'blue-600'} rounded-2xl flex items-center justify-center text-2xl border border-slate-100 shadow-inner flex-shrink-0">
                         <i class="fas ${s.icon_class}"></i>
                     </div>
                     <div class="flex-grow min-w-0 w-full">
-                        <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${s.name}</h3>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${s.name}</h3>
+                            ${isUserApp ? '<span class="bg-purple-100 text-purple-700 text-xs font-black px-2 py-1 rounded-lg">USER APP</span>' : ''}
+                        </div>
                         <p class="text-slate-500 text-xs truncate">${s.description}</p>
+                        ${isUserApp ? `<p class="text-purple-600 text-xs font-medium mt-1"><i class="fas fa-user-circle mr-1"></i> Created by developer</p>` : ''}
                     </div>
                     <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                        <button onclick="openStorePage('${s.id}')" class="bg-slate-100 text-slate-600 px-3 sm:px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap">Details</button>
+                        <button onclick="openStorePage('${s.id}')" class="bg-slate-100 text-slate-600 px-3 sm:px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap">${isUserApp ? 'App Info' : 'Details'}</button>
                         ${isConnected ? `<button onclick="unlinkService('${s.id}')" class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-slate-50 rounded-xl hover:bg-red-50"><i class="fas fa-link-slash text-xs sm:text-sm"></i></button>` : ''}
                     </div>
                 </div>
