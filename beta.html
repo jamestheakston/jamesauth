@@ -12,8 +12,6 @@
         .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
         .hero-gradient { background: radial-gradient(circle at top right, #f8fafc 0%, #ffffff 100%); }
         .blob { filter: blur(60px); z-index: -1; }
-        .experiment-card { transition: all 0.3s ease; }
-        .experiment-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="bg-white text-slate-900 overflow-x-hidden">
@@ -34,7 +32,7 @@
         <div class="absolute top-20 right-[-10%] w-96 h-96 bg-blue-50 rounded-full blob opacity-60"></div>
         <div class="absolute bottom-10 left-[-5%] w-72 h-72 bg-slate-100 rounded-full blob opacity-40"></div>
         
-        <div class="max-w-6xl mx-auto text-center">
+        <div class="max-w-4xl mx-auto text-center">
             <div class="inline-flex items-center space-x-2 bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-xs font-bold mb-8">
                 <i class="fas fa-flask text-purple-600"></i>
                 <span>EXPERIMENTS</span>
@@ -43,45 +41,44 @@
                 Beta <br><span class="text-blue-600">Experiments.</span>
             </h1>
             <p class="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-10 font-medium">
-                Explore our experimental features and cutting-edge projects. Join beta programs to test the future of James Auth.
+                Explore our experimental features and cutting-edge projects.
             </p>
         </div>
     </section>
 
-    <section class="py-24 px-6 max-w-6xl mx-auto">
+    <section class="py-24 px-6 max-w-4xl mx-auto">
         <div class="text-center mb-20">
             <h2 class="text-xs font-black text-blue-600 uppercase tracking-[0.3em] mb-4">ACTIVE EXPERIMENTS</h2>
             <h3 class="text-3xl md:text-4xl font-black text-slate-900">Current Beta Programs.</h3>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="experiment-card bg-white border border-slate-200 rounded-3xl p-8 shadow-lg">
-                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-6">
-                    <i class="fas fa-server"></i>
+        <div class="space-y-6 max-w-2xl mx-auto">
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-lg">
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xl font-bold text-slate-900">OAuth Server</h4>
+                        <p class="text-slate-600">Experimental OAuth platform built on Supabase OAuth server infrastructure.</p>
+                    </div>
                 </div>
-                <h4 class="text-xl font-bold text-slate-900 mb-3">OAuth Server</h4>
-                <p class="text-slate-600 leading-relaxed mb-4">Experimental OAuth platform built on Supabase OAuth server infrastructure for third-party integrations.</p>
                 <a href="betas/oauthserver.html" class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                    Learn More <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                    View Details <i class="fas fa-arrow-right ml-2 text-sm"></i>
                 </a>
             </div>
             
-            <div class="experiment-card bg-white border border-slate-200 rounded-3xl p-8 shadow-lg opacity-75">
-                <div class="w-16 h-16 bg-gray-100 text-gray-600 rounded-2xl flex items-center justify-center text-2xl mb-6">
-                    <i class="fas fa-clock"></i>
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-lg opacity-75">
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="w-16 h-16 bg-gray-100 text-gray-600 rounded-2xl flex items-center justify-center text-2xl">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="text-xl font-bold text-slate-900">Coming Soon</h4>
+                        <p class="text-slate-600">New experiments are being developed. Check back soon.</p>
+                    </div>
                 </div>
-                <h4 class="text-xl font-bold text-slate-900 mb-3">Coming Soon</h4>
-                <p class="text-slate-600 leading-relaxed mb-4">New experiments are being developed. Check back soon for more beta programs.</p>
                 <div class="text-sm text-gray-500 font-medium">Status: In Development</div>
-            </div>
-            
-            <div class="experiment-card bg-white border border-slate-200 rounded-3xl p-8 shadow-lg opacity-75">
-                <div class="w-16 h-16 bg-gray-100 text-gray-600 rounded-2xl flex items-center justify-center text-2xl mb-6">
-                    <i class="fas fa-lightbulb"></i>
-                </div>
-                <h4 class="text-xl font-bold text-slate-900 mb-3">Coming Soon</h4>
-                <p class="text-slate-600 leading-relaxed mb-4">More experimental features are being planned for the James Auth ecosystem.</p>
-                <div class="text-sm text-gray-500 font-medium">Status: Planning</div>
             </div>
         </div>
         
