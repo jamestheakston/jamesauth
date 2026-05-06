@@ -239,12 +239,16 @@
             currentUser = session?.user;
 
             // Try to find app in user_apps first
-            const { data: userApp } = await supabaseClient
+            console.log('Looking for app:', appShortName);
+            
+            const { data: userApp, error: userAppError } = await supabaseClient
                 .from('user_apps')
                 .select('*')
                 .eq('app_id', appShortName)
                 .eq('is_active', true)
                 .maybeSingle();
+
+            console.log('User app result:', { userApp, error: userAppError });
 
             if (userApp) {
                 targetApp = {
@@ -255,14 +259,19 @@
                     developer_name: 'App Developer',
                     developer_email: currentUser.email // The user who created the app
                 };
+                console.log('Found user app:', targetApp);
             } else {
                 // Try thirdparty_apps as fallback
-                const { data: thirdPartyApp } = await supabaseClient
+                console.log('User app not found, trying thirdparty apps...');
+                
+                const { data: thirdPartyApp, error: thirdPartyError } = await supabaseClient
                     .from('thirdparty_apps')
                     .select('*')
                     .eq('app_id', appShortName)
                     .eq('is_active', true)
                     .maybeSingle();
+                
+                console.log('Third party app result:', { thirdPartyApp, error: thirdPartyError });
                 
                 if (thirdPartyApp) {
                     targetApp = {
@@ -273,8 +282,14 @@
                         developer_name: 'James Theakston',
                         developer_email: 'james@example.com'
                     };
+                    console.log('Found third party app:', targetApp);
                 } else {
-                    return redirectToNotFound();
+                    console.log('App not found in either table');
+                    // Show more detailed error info
+                    document.getElementById('error-msg').innerText = `App "${appShortName}" not found. Please check the app ID and ensure the app is registered and active.`;
+                    document.getElementById('loading-view').classList.add('hidden');
+                    document.getElementById('error-view').classList.remove('hidden');
+                    return;
                 }
             }
 
