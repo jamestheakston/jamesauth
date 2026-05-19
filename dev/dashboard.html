@@ -392,6 +392,22 @@
             evaluateDashboardSession();
         };
 
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'JAMES_AUTH_SUCCESS') {
+                const user = event.data.user;
+                if (user && user.email) {
+                    developerSession = {
+                        user_id: user.user_id || user.id || 'unknown',
+                        email: user.email,
+                        name: user.name || user.email.split('@')[0],
+                        avatar: user.avatar || ''
+                    };
+                    localStorage.setItem('james_auth_developer', JSON.stringify(developerSession));
+                    loadDeveloperPortal();
+                }
+            }
+        });
+
         function parseJamesAuthCallback() {
             const urlParams = new URLSearchParams(window.location.search);
             const user_id = urlParams.get('user_id');
@@ -495,9 +511,12 @@
         }
 
         function redirectToJamesAuth() {
-            const currentRoute = window.location.origin + window.location.pathname;
-            const targetUrl = `https://jamesauth.pages.dev/auth.html?app=betaexperiments&scopes=email,profile&redirect_url=${encodeURIComponent(currentRoute)}`;
-            window.location.href = targetUrl;
+            const targetUrl = 'https://jamesauth.pages.dev/auth.html?app=betaexperiments&scopes=email,profile';
+            const width = 600;
+            const height = 700;
+            const left = (window.screen.width / 2) - (width / 2);
+            const top = (window.screen.height / 2) - (height / 2);
+            window.open(targetUrl, 'JamesAuthSignIn', `width=${width},height=${height},left=${left},top=${top},status=no,menubar=no,toolbar=no`);
         }
 
         function handleLogout() {
