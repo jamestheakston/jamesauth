@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="THR9CS9cW8LGx-WiKQAFdLYgRBljsr9ZpoDvwFArK3k" />
+    <title>James Auth | Developer Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+        .hero-gradient { background: radial-gradient(circle at top right, #f8fafc 0%, #ffffff 100%); }
+        .blob { filter: blur(80px); z-index: -1; }
+        .app-pill { transition: all 0.3s ease; }
+        .app-pill:hover { background-color: #f1f5f9; transform: scale(1.02); }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
+
+    <div id="auth-gate-screen" class="min-h-screen flex items-center justify-center px-4 relative bg-slate-50 z-50">
+        <div class="absolute top-10 right-10 w-80 h-80 bg-blue-100 rounded-full blob opacity-40"></div>
+        <div class="absolute bottom-10 left-10 w-80 h-80 bg-indigo-100 rounded-full blob opacity-35"></div>
+        
+        <div class="max-w-md w-full bg-white border border-slate-200 rounded-[2rem] shadow-2xl p-8 sm:p-10 relative z-10">
+            <div class="flex flex-col items-center text-center mb-8">
+                <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-lg shadow-blue-500/20 mb-4">
+                    <i class="fas fa-id-card-clip text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">James Auth Hub</h1>
+                <p class="text-xs text-blue-600 font-extrabold uppercase tracking-widest mt-1">Developer Portal</p>
+                <div class="mt-5 p-3.5 bg-blue-50/50 border border-blue-100 rounded-2xl text-left text-xs text-slate-600 flex gap-3">
+                    <i class="fas fa-shield-halved text-blue-600 text-base mt-0.5"></i>
+                    <span>This developer workspace is protected. Sign in with your James Auth account (app: <code class="font-bold text-blue-700">betaexperiments</code>) to register your developer status.</span>
+                </div>
+            </div>
+
+            <button onclick="redirectToJamesAuth()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 px-6 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-550/30 transition-all flex items-center justify-center gap-2.5">
+                <i class="fas fa-key text-sm"></i> Sign In with James Auth
+            </button>
+        </div>
+    </div>
+
+    <div id="dashboard-container" class="hidden min-h-screen flex flex-col md:flex-row relative">
+        
+        <div id="vetting-overlay" class="absolute inset-0 bg-slate-900/40 backdrop-blur-md z-40 flex items-center justify-center p-4 overflow-y-auto hidden">
+            <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-10 my-8 animate-fade-in relative">
+                
+                <button onclick="handleLogout()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 text-xs font-bold flex items-center gap-1.5 transition-colors">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+
+                <div id="vetting-register-form-view" class="space-y-6">
+                    <div class="text-center max-w-md mx-auto">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl mx-auto mb-3">
+                            <i class="fas fa-passport"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-900">Developer Account Vetting</h3>
+                        <p class="text-xs text-slate-500 mt-1">Specify your developer profile to request platform access. Approved accounts are registered inside the James Auth identity ecosystem.</p>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-2 mb-4">
+                        <span id="step-indicator-1" class="w-2.5 h-2.5 rounded-full bg-blue-600 transition-all duration-300"></span>
+                        <span class="w-8 h-0.5 bg-slate-200"></span>
+                        <span id="step-indicator-2" class="w-2.5 h-2.5 rounded-full bg-slate-200 transition-all duration-300"></span>
+                        <span class="w-8 h-0.5 bg-slate-200"></span>
+                        <span id="step-indicator-3" class="w-2.5 h-2.5 rounded-full bg-slate-200 transition-all duration-300"></span>
+                    </div>
+
+                    <div id="overlay-notification-panel" class="hidden p-3.5 rounded-xl text-xs font-medium flex gap-2.5">
+                        <i class="fas fa-circle-exclamation mt-0.5 shrink-0"></i>
+                        <span id="overlay-notification-text"></span>
+                    </div>
+
+                    <form id="vetting-multi-step-form" onsubmit="handleVettingSubmit(event)" class="space-y-5">
+                        <input type="hidden" name="signed_in_email" id="formspree-user-email">
+                        <input type="hidden" name="signed_in_name" id="formspree-user-name">
+
+                        <div id="form-step-1" class="space-y-4">
+                            <div class="border-b border-slate-100 pb-2">
+                                <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Step 1 of 3: Developer Info</h4>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Company / Developer Name *</label>
+                                <input type="text" id="vet-company-name" name="company_name" required placeholder="e.g. Acme Tech Labs" class="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl py-2.5 px-3.5 text-sm outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Developer Website or Portfolio URL *</label>
+                                <input type="url" id="vet-website" name="website_url" required placeholder="https://github.com/developer" class="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl py-2.5 px-3.5 text-sm outline-none transition-all font-mono">
+                            </div>
+                        </div>
+
+                        <div id="form-step-2" class="space-y-4 hidden">
+                            <div class="border-b border-slate-100 pb-2">
+                                <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Step 2 of 3: Project Specifications</h4>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Scope Requirements & Use Cases *</label>
+                                <textarea id="vet-usecase" name="usecase_description" required rows="3" placeholder="What apps do you plan to connect? Tell us briefly about your integration intentions..." class="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl p-3 text-sm outline-none transition-all resize-none"></textarea>
+                            </div>
+                        </div>
+
+                        <div id="form-step-3" class="space-y-4 hidden">
+                            <div class="border-b border-slate-100 pb-2">
+                                <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">Step 3 of 3: Trust & Safety Commitment</h4>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-600 space-y-3">
+                                <p class="font-medium">By requesting access, you confirm the following statements:</p>
+                                <ul class="list-disc pl-4 space-y-1.5 font-medium">
+                                    <li>All integration points comply with core secure connection standards.</li>
+                                    <li>User identity parameters received from James Auth will not be shared with unauthorized parties.</li>
+                                    <li>You agree to follow safety practices specified in the security documents.</li>
+                                </ul>
+                            </div>
+                            <label class="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none py-1">
+                                <input type="checkbox" id="vet-terms-check" name="agreed_to_terms" required class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500/30">
+                                <span class="font-bold text-slate-900">I certify my development strategy aligns with the James Auth platform standard protocol guidelines.</span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                            <button type="button" id="prev-step-btn" onclick="navigateVettingStep(-1)" class="px-5 py-2.5 bg-slate-150 hover:bg-slate-200 text-slate-700 text-xs font-extrabold rounded-xl transition-all disabled:opacity-50 disabled:pointer-events-none" disabled>
+                                Back
+                            </button>
+                            <button type="button" id="next-step-btn" onclick="navigateVettingStep(1)" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-blue-500/10">
+                                Next Step
+                            </button>
+                            <button type="submit" id="submit-vet-btn" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-emerald-500/10 hidden">
+                                Submit to Vetting Queue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="vetting-status-view" class="space-y-6 hidden">
+                    <div class="text-center max-w-md mx-auto">
+                        <div id="status-visual-badge" class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">
+                        </div>
+                        <h3 class="text-xl font-black text-slate-900" id="status-header-title">Vetting Queue Status</h3>
+                        <p class="text-xs text-slate-500 mt-1" id="status-desc-text">We are verifying your developer request credentials.</p>
+                    </div>
+
+                    <div class="border border-slate-150 bg-slate-50 rounded-2xl p-5 space-y-4">
+                        <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                            <span>Diagnostic Steps</span>
+                            <span class="text-blue-600" id="status-progress-percent">33% Complete</span>
+                        </div>
+                        
+                        <div class="relative w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div id="status-progress-fill" class="absolute top-0 left-0 h-full bg-blue-600 transition-all duration-500" style="width: 33%;"></div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-bold text-slate-500">
+                            <div class="flex flex-col items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center"><i class="fas fa-check text-[8px]"></i></span>
+                                <span class="text-blue-600">Registered</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1.5">
+                                <span id="visual-step-middle" class="w-5 h-5 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center"><i class="fas fa-search text-[8px]"></i></span>
+                                <span id="visual-label-middle">In Review</span>
+                            </div>
+                            <div class="flex flex-col items-center gap-1.5">
+                                <span id="visual-step-end" class="w-5 h-5 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center"><i class="fas fa-check-double text-[8px]"></i></span>
+                                <span id="visual-label-end">Approved</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="rejected-resubmit-container" class="hidden text-center pt-2">
+                        <button onclick="triggerResubmitForm()" class="px-6 py-3 bg-red-650 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-lg shadow-red-500/20">
+                            <i class="fas fa-redo mr-1"></i> Resubmit Developer Profile Request
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-150 text-xs font-semibold text-slate-500">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Live monitoring active (Updates every 10s)
+                        </span>
+                        <button onclick="checkThirdPartyAccess(true)" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 font-bold transition-all flex items-center gap-1.5">
+                            <i class="fas fa-sync-alt animate-spin" id="manual-sync-icon"></i> Refresh Status
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <aside class="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0">
+            <div class="p-6 border-b border-slate-100 flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md">
+                    <i class="fas fa-id-card-clip text-lg"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-md font-extrabold tracking-tight text-slate-900">James Auth</span>
+                    <span class="text-[9px] text-blue-600 font-black tracking-widest uppercase">Developer Hub</span>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1">
+                <button onclick="switchTab('create')" id="nav-btn-create" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-blue-50 text-blue-700 shadow-sm border border-blue-100/30">
+                    <i class="fas fa-user-check text-lg"></i>
+                    <span>Account Status</span>
+                </button>
+                <a href="https://jamesauth.mintlify.app/" target="_blank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-all">
+                    <i class="fas fa-book-open text-lg"></i>
+                    <span>Ecosystem Docs</span>
+                </a>
+                <a href="https://jamesauth.mintlify.app/contact-james-auth" target="_blank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-all">
+                    <i class="fas fa-envelope text-lg"></i>
+                    <span>Contact James Auth</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                <div class="flex items-center gap-3 p-2 rounded-xl mb-3">
+                    <div id="user-avatar-container" class="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 text-blue-600 flex items-center justify-center font-black text-sm overflow-hidden">
+                        <span id="user-avatar-char">D</span>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-xs font-bold text-slate-900 truncate" id="user-profile-name">Developer</span>
+                        <span class="text-[9px] font-semibold text-green-600 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active Session
+                        </span>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="w-full py-2 bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-y-auto custom-scroll max-h-screen bg-slate-50">
+            
+            <header class="h-16 border-b border-slate-200 bg-white px-6 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        Client Gateway Online
+                    </span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-xs font-medium text-slate-500 hidden sm:inline" id="user-profile-email">dev@jamesauth.io</span>
+                </div>
+            </header>
+
+            <div class="p-6 md:p-8 space-y-8 flex-1">
+
+                <div id="tab-workspace-create" class="space-y-6 animate-fade-in">
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight text-slate-900">Developer Dashboard</h2>
+                        <p class="text-sm text-slate-500 mt-1">Your developer registration process is complete. Review credentials and deployment instructions.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        <div class="lg:col-span-7 space-y-6">
+                            
+                            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                                <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-white/10 rounded-full"></div>
+                                <h3 class="text-lg font-bold mb-2 flex items-center gap-2">
+                                    <i class="fas fa-circle-check text-emerald-400"></i> Account Provisioned Successfully
+                                </h3>
+                                <p class="text-xs text-blue-100 leading-relaxed max-w-lg">
+                                    Your profile registration with James Auth has been processed. You are now prepared to launch third-party apps once authorized by ecosystem administrators.
+                                </p>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
+                                <h4 class="text-xs font-black text-blue-600 uppercase tracking-widest">App Creation Notice</h4>
+                                <div class="p-4 bg-amber-50/60 border border-amber-100 text-amber-900 rounded-xl flex gap-3 text-xs leading-relaxed">
+                                    <i class="fas fa-circle-info text-amber-600 mt-0.5 shrink-0 text-base"></i>
+                                    <div>
+                                        <p class="font-bold mb-1">Queue Status Ready</p>
+                                        <p class="font-medium text-amber-800">
+                                            This step verifies and creates your developer account so you are ready to configure applications. For system performance and security tracking, actual app creation is processed through the official request system in the documentation.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <span class="block text-xs font-bold uppercase text-slate-400">Essential Integration Resources</span>
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <a href="https://jamesauth.mintlify.app/creating-a-service" target="_blank" class="p-3 border border-slate-200 hover:border-blue-500 rounded-xl flex justify-between items-center transition-all bg-slate-50/50 hover:bg-blue-50/20">
+                                            <span class="text-xs font-bold text-slate-700 flex items-center gap-2">
+                                                <i class="fas fa-file-code text-blue-600"></i> Creating a Service Guide
+                                            </span>
+                                            <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
+                                        </a>
+                                        <a href="https://jamesauth.mintlify.app/makingrequest" target="_blank" class="p-3 border border-slate-200 hover:border-blue-500 rounded-xl flex justify-between items-center transition-all bg-slate-50/50 hover:bg-blue-50/20">
+                                            <span class="text-xs font-bold text-slate-700 flex items-center gap-2">
+                                                <i class="fas fa-square-plus text-blue-600"></i> Requesting App Integration
+                                            </span>
+                                            <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
+                                        </a>
+                                        <a href="https://jamesauth.mintlify.app/requirements" target="_blank" class="p-3 border border-slate-200 hover:border-blue-500 rounded-xl flex justify-between items-center transition-all bg-slate-50/50 hover:bg-blue-50/20">
+                                            <span class="text-xs font-bold text-slate-700 flex items-center gap-2">
+                                                <i class="fas fa-clipboard-list text-blue-600"></i> System Requirements
+                                            </span>
+                                            <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-6">
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+                                <span class="text-xs font-bold uppercase text-slate-400 tracking-wider">Access Parameters</span>
+                                <div class="p-4 border border-slate-100 rounded-2xl flex items-center space-x-4 bg-slate-50/50">
+                                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+                                        <i class="fas fa-key"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-bold text-slate-900 truncate" id="profile-card-title">Developer User</p>
+                                        <p class="text-xs text-slate-500 truncate" id="profile-card-sub">Waiting for client integration...</p>
+                                        <div class="flex gap-1 mt-1.5 flex-wrap">
+                                            <span class="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded uppercase">Third-Party Enabled</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+                                <span class="text-xs font-bold uppercase text-slate-400 tracking-wider block">Important Links</span>
+                                <div class="space-y-2 text-xs font-medium">
+                                    <a href="https://jamesauth.mintlify.app/scopes" target="_blank" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors">
+                                        <i class="fas fa-shield text-blue-600"></i> Review Supported Scopes
+                                    </a>
+                                    <a href="https://jamesauth.mintlify.app/security-considerations" target="_blank" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors">
+                                        <i class="fas fa-lock text-blue-600"></i> Security Considerations
+                                    </a>
+                                    <a href="https://jamesauth.mintlify.app/what-is-a-third-party-app" target="_blank" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors">
+                                        <i class="fas fa-circle-question text-blue-600"></i> What is a Third-Party App?
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <footer class="h-16 border-t border-slate-200 bg-white px-6 flex flex-col sm:flex-row justify-between items-center shrink-0 text-xs text-slate-400 font-semibold uppercase tracking-widest gap-2 py-4 sm:py-0">
+                <span>&copy; 2026 James Theakston</span>
+                <div class="flex gap-4">
+                    <a href="https://jamesauth.mintlify.app/" target="_blank" class="hover:text-blue-600 transition-colors">Documentation</a>
+                </div>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+        const supabaseKey = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+        
+        let supabaseClient = null;
+        let developerSession = null;
+        let currentVettingStep = 1;
+        let pollingInterval = null;
+
+        window.onload = function() {
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+            }
+            
+            parseJamesAuthCallback();
+            evaluateDashboardSession();
+        };
+
+        function parseJamesAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const user_id = urlParams.get('user_id');
+            const email = urlParams.get('email');
+            const name = urlParams.get('name');
+            const avatar = urlParams.get('avatar');
+
+            if (user_id && email) {
+                developerSession = {
+                    user_id: user_id,
+                    email: email,
+                    name: name || email.split('@')[0],
+                    avatar: avatar || ''
+                };
+                localStorage.setItem('james_auth_developer', JSON.stringify(developerSession));
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        function evaluateDashboardSession() {
+            const stored = localStorage.getItem('james_auth_developer');
+            if (stored) {
+                developerSession = JSON.parse(stored);
+                loadDeveloperPortal();
+            } else {
+                restrictDeveloperPortal();
+            }
+        }
+
+        function loadDeveloperPortal() {
+            document.getElementById('auth-gate-screen').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('hidden');
+
+            document.getElementById('user-profile-email').innerText = developerSession.email;
+            document.getElementById('user-profile-name').innerText = developerSession.name;
+            document.getElementById('profile-card-title').innerText = developerSession.name;
+            document.getElementById('profile-card-sub').innerText = developerSession.email;
+            
+            const avatarContainer = document.getElementById('user-avatar-container');
+            if (developerSession.avatar) {
+                avatarContainer.innerHTML = `<img src="${developerSession.avatar}" alt="Avatar" class="w-full h-full object-cover">`;
+            } else {
+                document.getElementById('user-avatar-char').innerText = developerSession.name.charAt(0).toUpperCase();
+            }
+
+            document.getElementById('formspree-user-email').value = developerSession.email;
+            document.getElementById('formspree-user-name').value = developerSession.name;
+
+            checkThirdPartyAccess();
+        }
+
+        async function checkThirdPartyAccess(isManualRefresh = false) {
+            if (!supabaseClient) return;
+
+            const spinIcon = document.getElementById('manual-sync-icon');
+            if (isManualRefresh && spinIcon) {
+                spinIcon.classList.add('fa-spin');
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('third_party access')
+                    .select('*')
+                    .eq('email', developerSession.email)
+                    .maybeSingle();
+
+                if (error) {
+                    throw error;
+                }
+
+                if (isManualRefresh && spinIcon) {
+                    setTimeout(() => spinIcon.classList.remove('fa-spin'), 600);
+                }
+
+                if (!data) {
+                    showVettingOverlay('FORM');
+                } else {
+                    const status = (data.status || 'REQUEST SENT').toUpperCase();
+                    if (status === 'APPROVED') {
+                        hideVettingOverlay();
+                    } else {
+                        showVettingOverlay('STATUS', status);
+                    }
+                }
+            } catch (err) {
+                if (isManualRefresh && spinIcon) {
+                    spinIcon.classList.remove('fa-spin');
+                }
+                showVettingOverlay('FORM');
+            }
+        }
+
+        function restrictDeveloperPortal() {
+            document.getElementById('auth-gate-screen').classList.remove('hidden');
+            document.getElementById('dashboard-container').classList.add('hidden');
+            hideVettingOverlay();
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        function redirectToJamesAuth() {
+            const currentRoute = window.location.origin + window.location.pathname;
+            const targetUrl = `https://jamesauth.pages.dev/auth.html?app=betaexperiments&scopes=email,profile&redirect_url=${encodeURIComponent(currentRoute)}`;
+            window.location.href = targetUrl;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('james_auth_developer');
+            developerSession = null;
+            restrictDeveloperPortal();
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['create'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`nav-btn-${tab}`);
+                if (btn) {
+                    if (tab === tabId) {
+                        btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-blue-50 text-blue-700 shadow-sm border border-blue-100/30";
+                    } else {
+                        btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-all";
+                    }
+                }
+            });
+        }
+
+        function showVettingOverlay(mode, status = '') {
+            document.getElementById('vetting-overlay').classList.remove('hidden');
+            
+            if (mode === 'FORM') {
+                document.getElementById('vetting-register-form-view').classList.remove('hidden');
+                document.getElementById('vetting-status-view').classList.add('hidden');
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            } else if (mode === 'STATUS') {
+                document.getElementById('vetting-register-form-view').classList.add('hidden');
+                document.getElementById('vetting-status-view').classList.remove('hidden');
+                renderStatusElements(status);
+
+                if (!pollingInterval) {
+                    pollingInterval = setInterval(() => {
+                        checkThirdPartyAccess();
+                    }, 10000);
+                }
+            }
+        }
+
+        function hideVettingOverlay() {
+            document.getElementById('vetting-overlay').classList.add('hidden');
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        function renderStatusElements(status) {
+            const badge = document.getElementById('status-visual-badge');
+            const title = document.getElementById('status-header-title');
+            const desc = document.getElementById('status-desc-text');
+            const progressFill = document.getElementById('status-progress-fill');
+            const progressPercent = document.getElementById('status-progress-percent');
+            
+            const middleStep = document.getElementById('visual-step-middle');
+            const middleLabel = document.getElementById('visual-label-middle');
+            const endStep = document.getElementById('visual-step-end');
+            const endLabel = document.getElementById('visual-label-end');
+            const resubmitBox = document.getElementById('rejected-resubmit-container');
+
+            resubmitBox.classList.add('hidden');
+
+            middleStep.className = "w-5 h-5 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center";
+            middleLabel.className = "";
+            endStep.className = "w-5 h-5 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center";
+            endLabel.className = "";
+
+            if (status === 'REQUEST SENT') {
+                badge.className = "w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4";
+                badge.innerHTML = '<i class="fas fa-hourglass-half animate-pulse"></i>';
+                title.innerText = "Request Submitted";
+                desc.innerText = "Your registration request is securely logged. Administrators are processing access permissions.";
+                progressFill.style.width = "33%";
+                progressPercent.innerText = "33% Complete";
+            } 
+            else if (status === 'IN REVIEW') {
+                badge.className = "w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4";
+                badge.innerHTML = '<i class="fas fa-magnifying-glass animate-pulse"></i>';
+                title.innerText = "Under Active Review";
+                desc.innerText = "Your application specifications are being audited by our technical review team.";
+                progressFill.style.width = "66%";
+                progressPercent.innerText = "66% Complete";
+
+                middleStep.className = "w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center";
+                middleLabel.className = "text-blue-600 font-bold";
+            } 
+            else if (status === 'REJECTED') {
+                badge.className = "w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4";
+                badge.innerHTML = '<i class="fas fa-user-xmark"></i>';
+                title.innerText = "Registration Rejected";
+                desc.innerText = "Your request was declined as it did not fulfill our security requirements. Please review your details and resubmit.";
+                progressFill.style.width = "100%";
+                progressPercent.innerText = "Rejected";
+                progressFill.classList.replace('bg-blue-600', 'bg-red-500');
+
+                middleStep.className = "w-5 h-5 rounded-full bg-red-100 text-red-500 flex items-center justify-center";
+                middleLabel.className = "text-red-500 font-bold";
+                endStep.className = "w-5 h-5 rounded-full bg-red-100 text-red-500 flex items-center justify-center";
+                endLabel.className = "text-red-500 font-bold";
+
+                resubmitBox.classList.remove('hidden');
+            }
+        }
+
+        function navigateVettingStep(direction) {
+            if (direction === 1) {
+                if (currentVettingStep === 1) {
+                    const comp = document.getElementById('vet-company-name').value.trim();
+                    const web = document.getElementById('vet-website').value.trim();
+                    if (!comp || !web) {
+                        showOverlayNotice("Please fill in all standard credentials before proceeding.");
+                        return;
+                    }
+                } else if (currentVettingStep === 2) {
+                    const usecase = document.getElementById('vet-usecase').value.trim();
+                    if (!usecase) {
+                        showOverlayNotice("Please declare your target scopes and use cases.");
+                        return;
+                    }
+                }
+            }
+
+            hideOverlayNotice();
+
+            document.getElementById(`form-step-${currentVettingStep}`).classList.add('hidden');
+            document.getElementById(`step-indicator-${currentVettingStep}`).className = "w-2.5 h-2.5 rounded-full bg-slate-200 transition-all duration-300";
+
+            currentVettingStep += direction;
+
+            document.getElementById(`form-step-${currentVettingStep}`).classList.remove('hidden');
+            document.getElementById(`step-indicator-${currentVettingStep}`).className = "w-2.5 h-2.5 rounded-full bg-blue-600 transition-all duration-300";
+
+            document.getElementById('prev-step-btn').disabled = (currentVettingStep === 1);
+            
+            if (currentVettingStep === 3) {
+                document.getElementById('next-step-btn').classList.add('hidden');
+                document.getElementById('submit-vet-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('next-step-btn').classList.remove('hidden');
+                document.getElementById('submit-vet-btn').classList.add('hidden');
+            }
+        }
+
+        function showOverlayNotice(message) {
+            const panel = document.getElementById('overlay-notification-panel');
+            const txt = document.getElementById('overlay-notification-text');
+            panel.className = "p-3.5 rounded-xl text-xs font-medium flex gap-2.5 bg-red-50 text-red-700 border border-red-200 animate-fade-in";
+            txt.innerText = message;
+        }
+
+        function hideOverlayNotice() {
+            document.getElementById('overlay-notification-panel').classList.add('hidden');
+        }
+
+        async function handleVettingSubmit(event) {
+            event.preventDefault();
+            hideOverlayNotice();
+
+            const termsAgreed = document.getElementById('vet-terms-check').checked;
+            if (!termsAgreed) {
+                showOverlayNotice("You must certify the safety statements before submitting.");
+                return;
+            }
+
+            const compName = document.getElementById('vet-company-name').value;
+            const webUrl = document.getElementById('vet-website').value;
+            const usecaseDesc = document.getElementById('vet-usecase').value;
+
+            const submitBtn = document.getElementById('submit-vet-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting Profile...";
+
+            try {
+                const formspreeUrl = "https://formspree.io/f/xgoqooej";
+                const response = await fetch(formspreeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: developerSession.email,
+                        name: developerSession.name,
+                        company_name: compName,
+                        website: webUrl,
+                        use_case: usecaseDesc,
+                        vetting_tier: "third_party_app_creation"
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Formspree response not OK.");
+                }
+
+                const { error: insertError } = await supabaseClient
+                    .from('third_party access')
+                    .insert([
+                        { email: developerSession.email, status: 'REQUEST SENT' }
+                    ]);
+
+                if (insertError) {
+                    console.warn("Direct Supabase update failed, continuing UI flow.", insertError);
+                }
+
+                await checkThirdPartyAccess();
+
+            } catch (error) {
+                console.error("Vetting submission failed:", error);
+                showOverlayNotice("Profile registry saved. Database updating. Please refresh status in a few seconds.");
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit to Vetting Queue";
+            }
+        }
+
+        async function triggerResubmitForm() {
+            try {
+                await supabaseClient
+                    .from('third_party access')
+                    .delete()
+                    .eq('email', developerSession.email);
+
+                document.getElementById('vetting-multi-step-form').reset();
+                currentVettingStep = 1;
+                
+                document.getElementById('form-step-1').classList.remove('hidden');
+                document.getElementById('form-step-2').classList.add('hidden');
+                document.getElementById('form-step-3').classList.add('hidden');
+                document.getElementById('step-indicator-1').className = "w-2.5 h-2.5 rounded-full bg-blue-600 transition-all duration-300";
+                document.getElementById('step-indicator-2').className = "w-2.5 h-2.5 rounded-full bg-slate-200 transition-all duration-300";
+                document.getElementById('step-indicator-3').className = "w-2.5 h-2.5 rounded-full bg-slate-200 transition-all duration-300";
+                
+                document.getElementById('prev-step-btn').disabled = true;
+                document.getElementById('next-step-btn').classList.remove('hidden');
+                document.getElementById('submit-vet-btn').classList.add('hidden');
+
+                showVettingOverlay('FORM');
+            } catch (err) {
+                console.error("Failed to reset vetting states:", err);
+            }
+        }
+    </script>
+</body>
+</html>
