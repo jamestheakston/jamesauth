@@ -269,26 +269,30 @@
                         </div>
                     </div>
 
-                    <!-- Security Section -->
-                    <div id="security-section" class="hidden bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
-                        <div class="p-8 border-b border-slate-100 bg-slate-50/50">
-                            <h2 class="text-2xl font-black text-slate-900">Security</h2>
-                            <p class="text-slate-500 text-sm font-medium">Manage your account security and sessions.</p>
-                        </div>
-                        <div class="p-8 space-y-6">
-                            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                                <h3 class="text-lg font-bold text-slate-900 mb-2">Sign Out</h3>
-                                <p class="text-slate-600 text-sm mb-4">Sign out of your James Auth account on this device.</p>
-                                <button onclick="handleLogout()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center">
-                                    <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                                    </div>
-            </div>
+                    <div id="security-section" class="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
+    <div class="p-8 border-b border-slate-100 bg-slate-50/50">
+        <h2 class="text-2xl font-black text-slate-900">Security</h2>
+        <p class="text-slate-500 text-sm font-medium">Manage your account security and sessions.</p>
+    </div>
+    <div class="p-8 space-y-6">
+        <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Sign Out</h3>
+            <p class="text-slate-600 text-sm mb-4">Sign out of your James Auth account on this device.</p>
+            <button onclick="handleLogout()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+            </button>
         </div>
+
+        <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
+            <h3 class="text-lg font-bold text-red-900 mb-2">Delete Account</h3>
+            <p class="text-red-700 text-sm mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
+            <a href="/myaccount/deleteaccount.html" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition-all inline-flex items-center">
+                <i class="fas fa-trash-alt mr-2"></i> Delete Account
+            </a>
+        </div>
+    </div>
+</div>
+                 
     </main>
 
     <div id="service-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
