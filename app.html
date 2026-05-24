@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -201,14 +201,6 @@
                 <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> Discovery Store
             </h3>
             <div id="available-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12"></div>
-
-            <!-- User Apps Section -->
-            <div id="user-apps-section" class="hidden">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-4 sm:mb-6 flex items-center">
-                    <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span> Your OAuth Applications
-                </h3>
-                <div id="user-apps-grid" class="space-y-6 mb-8 sm:mb-12"></div>
-            </div>
         </div>
 
         <div id="settings-view" class="hidden max-w-6xl mx-auto w-full">
@@ -288,16 +280,6 @@
                                 <h3 class="text-lg font-bold text-slate-900 mb-2">Sign Out</h3>
                                 <p class="text-slate-600 text-sm mb-4">Sign out of your James Auth account on this device.</p>
                                 <button onclick="handleLogout()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center">
-                                    <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
-                                </button>
-                            </div>
-                            <div class="p-8 space-y-6">
-                            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                                <h3 class="text-lg font-bold text-slate-900 mb-2">Sign Out</h3>
-                                <p class="text-slate-600 text-sm mb-4">Sign out of your James Auth account on this device.</p>
-                                <button onclick="window.location.href='/myaccount/deleteaccount.html'" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center">
-    Delete Account
-</button>
                                     <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
                                 </button>
                             </div>
@@ -794,43 +776,8 @@
             if (!supabaseClient || !currentUser) return;
             const { data: services } = await supabaseClient.from('services').select('*');
             const { data: connections } = await supabaseClient.from('user_connections').select('service_id').eq('user_id', currentUser.id);
-            
-            // Load user-created apps and check if current user has authenticated to them
-            const { data: userAuthentications } = await supabaseClient
-                .from('app_authentications')
-                .select('app_id, authenticated_at')
-                .eq('user_id', currentUser.id)
-                .eq('is_active', true);
-            
-            // Get user apps that the current user has authenticated to
-            const authenticatedUserAppIds = (userAuthentications || []).map(auth => auth.app_id);
-            const { data: userApps } = await supabaseClient
-                .from('user_apps')
-                .select('*')
-                .eq('is_active', true)
-                .in('app_id', authenticatedUserAppIds);
-            
-            // Combine regular services and user apps
-            allServices = [
-                ...(services || []),
-                ...(userApps || []).map(app => ({
-                    ...app,
-                    id: app.app_id, // Use app_id as id for consistency
-                    name: app.name,
-                    description: `User-created OAuth application: ${app.name}`,
-                    icon_class: 'fa-cube',
-                    accent_color: 'purple-600',
-                    is_user_app: true
-                }))
-            ];
-            
-            connectedIds = [
-                ...(connections || []).map(c => c.service_id),
-                ...authenticatedUserAppIds
-            ];
-            
-            // Load authenticated users for each app
-            await loadAuthenticatedUsers();
+            allServices = services || [];
+            connectedIds = (connections || []).map(c => c.service_id);
             
             // Store connected services in localStorage for docs page to check
             localStorage.setItem('connected_services', JSON.stringify(connectedIds));
@@ -838,161 +785,28 @@
             renderGrids();
         }
 
-        async function loadAuthenticatedUsers() {
-            if (!supabaseClient || !currentUser) return;
-            
-            try {
-                // Load user apps created by current user
-                const { data: userApps } = await supabaseClient
-                    .from('user_apps')
-                    .select('*')
-                    .eq('created_by', currentUser.id)
-                    .eq('is_active', true);
-                
-                if (userApps && userApps.length > 0) {
-                    // For each user app, load authenticated users
-                    for (const app of userApps) {
-                        const { data: authentications } = await supabaseClient
-                            .from('app_authentications')
-                            .select('*')
-                            .eq('app_id', app.app_id)
-                            .eq('is_active', true)
-                            .order('authenticated_at', { ascending: false })
-                            .limit(10); // Show last 10 authentications
-                        
-                        app.authenticatedUsers = authentications || [];
-                    }
-                    
-                    // Store user apps with authentication data
-                    window.userAppsWithAuth = userApps;
-                }
-            } catch (error) {
-                console.error('Error loading authenticated users:', error);
-            }
-        }
-
         function renderGrids() {
             const connectedGrid = document.getElementById('connected-grid');
             const availableGrid = document.getElementById('available-grid');
-            const userAppsSection = document.getElementById('user-apps-section');
-            const userAppsGrid = document.getElementById('user-apps-grid');
-            
             const connected = allServices.filter(s => connectedIds.includes(s.id));
             const available = allServices.filter(s => !connectedIds.includes(s.id));
-            
             connectedGrid.innerHTML = connected.length === 0 ? `<p class="col-span-full text-slate-400 italic py-4">No apps connected.</p>` : connected.map(s => renderServiceCard(s, true)).join('');
             availableGrid.innerHTML = available.map(s => renderServiceCard(s, false)).join('');
-            
-            // Render user apps with authenticated users
-            if (window.userAppsWithAuth && window.userAppsWithAuth.length > 0) {
-                userAppsSection.classList.remove('hidden');
-                userAppsGrid.innerHTML = window.userAppsWithAuth.map(app => renderUserAppCard(app)).join('');
-            } else {
-                userAppsSection.classList.add('hidden');
-            }
         }
 
         function renderServiceCard(s, isConnected) {
-            const isUserApp = s.is_user_app || false;
-            
             return `
                 <div class="service-card bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-5 transition-all">
                     <div class="w-16 h-14 bg-slate-50 text-${s.accent_color || 'blue-600'} rounded-2xl flex items-center justify-center text-2xl border border-slate-100 shadow-inner flex-shrink-0">
                         <i class="fas ${s.icon_class}"></i>
                     </div>
                     <div class="flex-grow min-w-0 w-full">
-                        <div class="flex items-center gap-2 mb-1">
-                            <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${s.name}</h3>
-                            ${isUserApp ? '<span class="bg-purple-100 text-purple-700 text-xs font-black px-2 py-1 rounded-lg">USER APP</span>' : ''}
-                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 truncate">${s.name}</h3>
                         <p class="text-slate-500 text-xs truncate">${s.description}</p>
-                        ${isUserApp ? `<p class="text-purple-600 text-xs font-medium mt-1"><i class="fas fa-user-circle mr-1"></i> Created by developer</p>` : ''}
                     </div>
                     <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
-                        <button onclick="openStorePage('${s.id}')" class="bg-slate-100 text-slate-600 px-3 sm:px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap">${isUserApp ? 'App Info' : 'Details'}</button>
+                        <button onclick="openStorePage('${s.id}')" class="bg-slate-100 text-slate-600 px-3 sm:px-4 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap">Details</button>
                         ${isConnected ? `<button onclick="unlinkService('${s.id}')" class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors bg-slate-50 rounded-xl hover:bg-red-50"><i class="fas fa-link-slash text-xs sm:text-sm"></i></button>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderUserAppCard(app) {
-            const authUsers = app.authenticatedUsers || [];
-            const recentUsers = authUsers.slice(0, 5); // Show last 5 users
-            
-            return `
-                <div class="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 bg-gradient-to-r from-purple-50 to-blue-50">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-12 h-12 bg-purple-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg">
-                                    <i class="fas fa-cube"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black text-slate-900">${app.name}</h3>
-                                    <p class="text-sm text-slate-600 font-medium">App ID: <code class="bg-slate-100 px-2 py-1 rounded text-xs">${app.app_id}</code></p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-black text-purple-600">${authUsers.length}</div>
-                                <div class="text-xs text-slate-500 uppercase tracking-wider font-bold">Total Users</div>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <div class="text-xs text-slate-500">
-                                <i class="fas fa-calendar-alt mr-1"></i>
-                                Created ${new Date(app.created_at).toLocaleDateString()}
-                            </div>
-                            <button onclick="showBetaModal('${app.app_id}', '${app.name}')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-black px-4 py-2 rounded-xl transition-all">
-                                <i class="fas fa-info-circle mr-1"></i> Beta Info
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="p-6">
-                        <h4 class="text-sm font-bold text-slate-700 mb-4 flex items-center">
-                            <i class="fas fa-users mr-2 text-purple-600"></i>
-                            Recent Authentications
-                        </h4>
-                        ${recentUsers.length > 0 ? `
-                            <div class="space-y-3">
-                                ${recentUsers.map(user => `
-                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden flex-shrink-0">
-                                                ${user.user_avatar ? 
-                                                    `<img src="${user.user_avatar}" class="w-full h-full object-cover">` : 
-                                                    `<div class="w-full h-full flex items-center justify-center text-slate-400">
-                                                        <i class="fas fa-user text-sm"></i>
-                                                    </div>`
-                                                }
-                                            </div>
-                                            <div class="min-w-0">
-                                                <div class="font-bold text-slate-900 text-sm truncate">${user.user_name}</div>
-                                                <div class="text-xs text-slate-500 truncate">${user.user_email}</div>
-                                            </div>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-xs text-slate-500">${new Date(user.authenticated_at).toLocaleDateString()}</div>
-                                            <div class="text-xs text-slate-400">${new Date(user.authenticated_at).toLocaleTimeString()}</div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            ${authUsers.length > 5 ? `
-                                <div class="mt-4 text-center">
-                                    <button onclick="viewAllUsers('${app.app_id}')" class="text-purple-600 hover:text-purple-700 text-sm font-bold">
-                                        View all ${authUsers.length} users →
-                                    </button>
-                                </div>
-                            ` : ''}
-                        ` : `
-                            <div class="text-center py-8 text-slate-400">
-                                <i class="fas fa-user-slash text-4xl mb-3 opacity-50"></i>
-                                <p class="text-sm font-medium">No users have authenticated yet</p>
-                                <p class="text-xs mt-1">Share your app to get started!</p>
-                            </div>
-                        `}
                     </div>
                 </div>
             `;
@@ -1056,71 +870,6 @@
         function closeModal() { document.getElementById('service-modal').classList.add('hidden'); }
 
         let serviceToUnlink = null;
-
-        // Beta Modal Functions
-        function showBetaModal(appId, appName) {
-            const modal = document.getElementById('service-modal');
-            
-            // Update modal content for beta information
-            document.getElementById('modal-title').innerText = `${appName} - Beta Information`;
-            document.getElementById('modal-description').innerHTML = `
-                <div class="space-y-4">
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-                        <div class="flex items-center space-x-3 mb-3">
-                            <div class="bg-yellow-500 text-white px-3 py-1 rounded-lg">
-                                <span class="text-xs font-bold">BETA</span>
-                            </div>
-                            <h4 class="font-bold text-yellow-800">This application is in beta</h4>
-                        </div>
-                        <p class="text-sm text-yellow-700 leading-relaxed">
-                            This OAuth application is currently in beta testing. Features may change, and some functionality might be experimental. 
-                            Users authenticating to this app should be aware that it's still under development.
-                        </p>
-                    </div>
-                    
-                    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                        <h4 class="font-bold text-blue-800 mb-2">OAuth Implementation</h4>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-blue-700">Client ID:</span>
-                                <code class="bg-blue-100 px-2 py-1 rounded text-xs font-mono">${appId}</code>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-blue-700">Auth URL:</span>
-                                <code class="bg-blue-100 px-2 py-1 rounded text-xs font-mono">https://jamesauth.pages.dev/auth.html</code>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-purple-50 border border-purple-200 rounded-2xl p-4">
-                        <h4 class="font-bold text-purple-800 mb-2">Developer Information</h4>
-                        <p class="text-sm text-purple-700">
-                            This application was created using the James Auth OAuth Server infrastructure. 
-                            As the developer, you can monitor authentications and manage user access through this dashboard.
-                        </p>
-                    </div>
-                </div>
-            `;
-            
-            // Update modal styling
-            document.getElementById('modal-icon').className = 'fas fa-flask';
-            document.getElementById('modal-icon-container').className = 'w-20 h-20 rounded-3xl flex items-center justify-center text-3xl text-yellow-600 bg-yellow-50';
-            document.getElementById('modal-status').innerText = 'Beta Active';
-            document.getElementById('modal-accent').className = 'h-3 w-full bg-yellow-500';
-            
-            // Hide beta notice since we're showing it in the description
-            document.getElementById('beta-notice').classList.add('hidden');
-            document.getElementById('developer-note').classList.add('hidden');
-            document.getElementById('chrome-extension-notice').classList.add('hidden');
-            document.getElementById('launch-service-container').classList.add('hidden');
-            
-            modal.classList.remove('hidden');
-        }
-
-        function viewAllUsers(appId) {
-            // This could open a detailed view of all users for an app
-            showToast('User details view coming soon!', 'info');
-        }
 
         function showUnlinkModal(serviceId, serviceName, iconClass) {
             serviceToUnlink = serviceId;
