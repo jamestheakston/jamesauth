@@ -17,21 +17,19 @@
     </div>
 
     <script>
-        const supabaseUrl = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
-        const supabaseKey = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        (async function() {
+            const supabaseUrl = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+            const supabaseKey = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+            const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-        async function handleSignOut() {
             try {
-                await supabase.auth.signOut();
+                await client.auth.signOut();
             } catch (error) {
                 console.error('Error signing out:', error);
             } finally {
                 window.location.href = '/goodbye?type=logout';
             }
-        }
-
-        handleSignOut();
+        })();
     </script>
 </body>
 </html>
