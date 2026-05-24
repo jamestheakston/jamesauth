@@ -8,14 +8,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <style>
+        .custom-captcha-box {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f9fafb;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 300px;
+            height: 74px;
+        }
+        .custom-captcha-box:hover { border-color: #9ca3af; }
+        .checkbox-fake {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #9ca3af;
+            border-radius: 3px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: 18px;
+        }
+        .h-captcha { display: none; }
+    </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-
     <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md border border-gray-200">
-        
         <div id="statusMessage" class="hidden p-4 mb-4 rounded-lg text-sm text-center"></div>
-
-        <!-- Step 1: Introduction -->
         <div id="step1" class="text-center">
             <div class="text-red-500 text-4xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>
             <h1 class="text-2xl font-bold text-gray-900">Delete Account</h1>
@@ -23,12 +48,9 @@
             <button onclick="goToStep(2)" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition">Next</button>
             <a href="/" class="block mt-4 text-gray-500 hover:text-gray-700 text-sm font-medium">Cancel</a>
         </div>
-
-        <!-- Step 2: Login Credentials & Captcha -->
         <div id="step2" class="hidden">
             <h2 class="text-xl font-bold text-gray-900 mb-2">Verify Identity</h2>
             <p class="text-gray-600 mb-6 text-sm">Use the same login information you use to access your James Auth dashboard.</p>
-            
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input type="email" id="emailInput" class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500">
@@ -37,57 +59,67 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input type="password" id="passwordInput" class="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500">
             </div>
-
-            <!-- hCaptcha -->
-            <div class="h-captcha mb-6" data-sitekey="580c407c-7cfc-4086-8fb2-8ae2ff501056"></div>
-            
+            <div class="mb-6 flex flex-col items-start gap-1">
+                <div class="custom-captcha-box" onclick="triggerCaptcha()">
+                    <div class="flex items-center">
+                        <div class="checkbox-fake" id="checkboxFake"></div>
+                        <span class="text-gray-900 font-medium">I am human</span>
+                    </div>
+                    <div class="text-[11px] text-gray-700 text-right leading-tight font-bold flex flex-col items-end">
+                        <i class="fas fa-id-card-clip text-xl mb-1" style="color: #2563eb;"></i>
+                        James Auth
+                        <span class="text-[9px] text-gray-500 font-normal">Powered by hCaptcha</span>
+                    </div>
+                </div>
+                <div class="h-captcha" id="h-captcha-container" data-sitekey="580c407c-7cfc-4086-8fb2-8ae2ff501056" data-callback="onCaptchaVerified"></div>
+            </div>
             <button id="loginBtn" onclick="handleLogin()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition">Proceed</button>
             <button onclick="goToStep(1)" class="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm font-medium">Back</button>
         </div>
-
-        <!-- Step 3: Final Confirmation -->
         <div id="step3" class="hidden text-center">
             <h2 class="text-xl font-bold text-gray-900 mb-4">Final Confirmation</h2>
             <p class="text-gray-600 mb-6">Are you absolutely sure? This will permanently erase your profile.</p>
-            
             <button id="finalDeleteBtn" disabled onclick="deleteAccount()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition opacity-50 cursor-not-allowed">
                 Yes (5)
             </button>
             <button onclick="goToStep(2)" class="w-full mt-3 text-gray-500 hover:text-gray-700 text-sm font-medium">Wait, go back</button>
         </div>
     </div>
-
     <script>
         const supabaseUrl = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
         const supabaseAnonKey = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-
         const statusMessage = document.getElementById('statusMessage');
         const finalDeleteBtn = document.getElementById('finalDeleteBtn');
         let countdown = 5;
-
-        function showMessage(text, isError, persist = false) {
+        let isVerified = false;
+        function triggerCaptcha() {
+            if (typeof hcaptcha !== 'undefined') {
+                hcaptcha.execute();
+            }
+        }
+        function showMessage(text, isError) {
             statusMessage.innerHTML = text;
             statusMessage.className = `p-4 mb-4 rounded-lg text-sm ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
             statusMessage.classList.remove('hidden');
         }
-
+        function onCaptchaVerified() {
+            isVerified = true;
+            const cb = document.getElementById('checkboxFake');
+            cb.style.borderColor = '#2563eb';
+            cb.innerHTML = '<i class="fas fa-check"></i>';
+        }
         function goToStep(step) {
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.add('hidden');
             document.getElementById('step3').classList.add('hidden');
             document.getElementById('step' + step).classList.remove('hidden');
             statusMessage.classList.add('hidden');
-
             if (step === 3) startCountdown();
         }
-
         function startCountdown() {
             countdown = 5;
             finalDeleteBtn.textContent = `Yes (${countdown})`;
-            finalDeleteBtn.disabled = true;
-            finalDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            
             const timer = setInterval(() => {
                 countdown--;
                 if (countdown > 0) {
@@ -100,47 +132,35 @@
                 }
             }, 1000);
         }
-
         async function handleLogin() {
             const email = document.getElementById('emailInput').value;
             const password = document.getElementById('passwordInput').value;
-            const captchaToken = hcaptcha.getResponse();
-
             if (!email || !password) {
                 showMessage('Please enter email and password.', true);
                 return;
             }
-            if (!captchaToken) {
-                showMessage('Please complete the captcha.', true);
+            if (!isVerified) {
+                showMessage('Please complete the human verification.', true);
                 return;
             }
-
             try {
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 goToStep(3);
             } catch (err) {
                 showMessage(err.message, true);
-                hcaptcha.reset();
+                if (typeof hcaptcha !== 'undefined') hcaptcha.reset();
+                isVerified = false;
+                const cb = document.getElementById('checkboxFake');
+                cb.style.borderColor = '#9ca3af';
+                cb.innerHTML = '';
             }
         }
-
         async function deleteAccount() {
-            const captchaToken = hcaptcha.getResponse();
-            
             try {
-                const { data, error } = await supabaseClient.functions.invoke('delete-account', {
-                    body: { captchaToken } 
-                });
-                
+                const { error } = await supabaseClient.functions.invoke('delete-account');
                 if (error) throw error;
-
-                showMessage(`
-                    <strong>Account deleted successfully.</strong><br><br>
-                    To finish, please <strong>clear your browser cookies and site data</strong> for this domain. If you do not, you may be stuck in a redirect loop.
-                    <br><br><a href="/" class="underline">Click here to return home</a>
-                `, false);
-                
+                showMessage(`<strong>Account deleted successfully.</strong><br><br>Please clear your browser cookies and site data for this domain to avoid redirect loops.<br><br><a href="/" class="underline">Click here to return home</a>`, false);
                 document.getElementById('step3').classList.add('hidden');
             } catch (err) {
                 showMessage(err.message, true);
