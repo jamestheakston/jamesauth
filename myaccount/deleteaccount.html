@@ -62,8 +62,8 @@
         const finalDeleteBtn = document.getElementById('finalDeleteBtn');
         let countdown = 5;
 
-        function showMessage(text, isError) {
-            statusMessage.textContent = text;
+        function showMessage(text, isError, persist = false) {
+            statusMessage.innerHTML = text;
             statusMessage.className = `p-4 mb-4 rounded-lg text-sm ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
             statusMessage.classList.remove('hidden');
         }
@@ -119,13 +119,20 @@
             try {
                 // Call the secure Edge Function
                 const { data, error } = await supabaseClient.functions.invoke('delete-account', {
-                    body: {} // No additional body needed as auth is handled via header
+                    body: {} 
                 });
                 
                 if (error) throw error;
 
-                showMessage('Account deleted successfully.', false);
-                setTimeout(() => window.location.href = '/', 2000);
+                // Success Message with specific instruction to clear cookies
+                showMessage(`
+                    <strong>Account deleted successfully.</strong><br><br>
+                    To finish, please <strong>clear your browser cookies and site data</strong> for this domain. If you do not, you may be stuck in a redirect loop as your browser tries to re-authenticate with an old session.
+                    <br><br><a href="/" class="underline">Click here to return home</a>
+                `, false);
+                
+                // Hide buttons
+                document.getElementById('step3').classList.add('hidden');
             } catch (err) {
                 showMessage(err.message, true);
             }
