@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signing Out</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="flex flex-col items-center">
+        <div class="relative w-16 h-16 mb-4">
+            <div class="absolute top-0 left-0 w-full h-full border-4 border-gray-200 rounded-full"></div>
+            <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+        </div>
+        <p class="text-gray-700 font-medium">Signing out...</p>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://llpmvxxacpvmmgijbhzo.supabase.co';
+        const supabaseKey = 'sb_publishable_hyDJDaNMbeoeLsMO7d4tJg_x4eORosJ';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function handleSignOut() {
+            try {
+                await supabase.auth.signOut();
+            } catch (error) {
+                console.error('Error signing out:', error);
+            } finally {
+                window.location.href = '/goodbye?type=logout';
+            }
+        }
+
+        handleSignOut();
+    </script>
+</body>
+</html>
